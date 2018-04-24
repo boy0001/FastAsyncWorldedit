@@ -8,6 +8,7 @@ import com.boydti.fawe.jnbt.anvil.HeightMapMCAGenerator;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.clipboard.MultiClipboardHolder;
+import com.boydti.fawe.object.pattern.PatternExtent;
 import com.boydti.fawe.util.*;
 import com.boydti.fawe.util.chat.Message;
 import com.boydti.fawe.util.image.ImageUtil;
@@ -29,8 +30,8 @@ import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandException;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
 import com.sk89q.worldedit.*;
-import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
+import com.sk89q.worldedit.blocks.BlockID;
 import com.sk89q.worldedit.command.MethodCommands;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.extension.input.InputParseException;
@@ -38,6 +39,7 @@ import com.sk89q.worldedit.extension.input.ParserContext;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
 import com.sk89q.worldedit.function.mask.Mask;
+import com.sk89q.worldedit.function.pattern.BlockPattern;
 import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.session.request.Request;
@@ -57,7 +59,10 @@ import java.io.IOException;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 import javax.imageio.ImageIO;
 
 @Command(aliases = {"/cfi"}, desc = "Create a world from images: [More Info](https://git.io/v5iDy)")
@@ -364,7 +369,7 @@ public class CFICommands extends MethodCommands {
                     "`#clipboard` will only use the blocks present in your clipboard."
     )
     @CommandPermissions("worldedit.anvil.cfi")
-    public void paletteblocks(FawePlayer fp, @Optional String arg) throws ParameterException, EmptyClipboardException, InputParseException, FileNotFoundException {
+    public void paletteblocks(FawePlayer fp, Player player, LocalSession session, @Optional String arg) throws ParameterException, EmptyClipboardException, InputParseException, FileNotFoundException {
         if (arg == null) {
             msg("What blocks do you want to color with?").newline()
             .text("&7[&aAll&7]").cmdTip(alias() + " PaletteBlocks *").text(" - All available blocks")
@@ -389,6 +394,7 @@ public class CFICommands extends MethodCommands {
 
         Set<BaseBlock> blocks;
         switch (arg.toLowerCase()) {
+            case "true":
             case "*": {
                 generator.setTextureUtil(Fawe.get().getTextureUtil());
                 return;
@@ -407,7 +413,23 @@ public class CFICommands extends MethodCommands {
                 break;
             }
             default: {
-                blocks = worldEdit.getBlockFactory().parseFromListInput(arg, context);
+                blocks = new HashSet<>();
+                BlockPattern pattern = new BlockPattern(new BaseBlock(BlockID.AIR));
+                PatternExtent extent = new PatternExtent(pattern);
+
+                ParserContext parserContext = new ParserContext();
+                parserContext.setActor(player);
+                parserContext.setWorld(player.getWorld());
+                parserContext.setSession(session);
+                parserContext.setExtent(extent);
+                Request.request().setExtent(extent);
+                Mask mask = worldEdit.getMaskFactory().parseFromInput(arg, parserContext);
+                TextureUtil tu = Fawe.get().getTextureUtil();
+                for (int combinedId : tu.getValidBlockIds()) {
+                    BaseBlock block = FaweCache.CACHE_BLOCK[combinedId];
+                    pattern.setBlock(block);
+                    if (mask.test(Vector.ZERO)) blocks.add(block);
+                }
                 break;
             }
         }

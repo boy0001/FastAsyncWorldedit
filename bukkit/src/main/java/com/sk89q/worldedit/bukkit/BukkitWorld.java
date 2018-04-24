@@ -22,13 +22,8 @@ package com.sk89q.worldedit.bukkit;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.bukkit.FaweBukkit;
 import com.boydti.fawe.bukkit.v0.BukkitQueue_0;
-import com.sk89q.worldedit.BlockVector2D;
-import com.sk89q.worldedit.EditSession;
-import com.sk89q.worldedit.LocalWorld;
+import com.sk89q.worldedit.*;
 import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.Vector2D;
-import com.sk89q.worldedit.WorldEdit;
-import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.blocks.BaseItemStack;
 import com.sk89q.worldedit.blocks.LazyBlock;
@@ -41,20 +36,10 @@ import com.sk89q.worldedit.world.biome.BaseBiome;
 import com.sk89q.worldedit.world.registry.WorldData;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.annotation.Nullable;
-import org.bukkit.Bukkit;
-import org.bukkit.Effect;
-import org.bukkit.Material;
-import org.bukkit.TreeType;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
@@ -68,9 +53,10 @@ import org.bukkit.inventory.ItemStack;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class BukkitWorld extends LocalWorld {
 
-    private static final Logger logger = WorldEdit.logger;
+import com.sk89q.worldedit.util.Location;
+
+public class BukkitWorld extends LocalWorld {
 
     private static final Map<Integer, Effect> effects = new HashMap<Integer, Effect>();
     static {
@@ -257,7 +243,7 @@ public class BukkitWorld extends LocalWorld {
             try {
                 getWorld().regenerateChunk(chunk.getBlockX(), chunk.getBlockZ());
             } catch (Throwable t) {
-                logger.log(Level.WARNING, "Chunk generation via Bukkit raised an error", t);
+                WorldEdit.logger.log(Level.WARNING, "Chunk generation via Bukkit raised an error", t);
             }
 
             // Then restore
