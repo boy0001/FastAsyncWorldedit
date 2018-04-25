@@ -844,9 +844,9 @@ public class Vector implements Comparable<Vector>, Serializable {
 
     @Override
     public String toString() {
-        String x = "" + (getX() == getBlockX() ? getBlockX() : getX());
-        String y = "" + (getY() == getBlockY() ? getBlockY() : getY());
-        String z = "" + (getZ() == getBlockZ() ? getBlockZ() : getZ());
+        String x = (getX() == getBlockX() ? "" + getBlockX() : "" + getX());
+        String y = (getY() == getBlockY() ? "" + getBlockY() : "" + getY());
+        String z = (getZ() == getBlockZ() ? "" + getBlockZ() : "" + getZ());
         return "(" + x + ", " + y + ", " + z + ")";
     }
 
@@ -879,7 +879,7 @@ public class Vector implements Comparable<Vector>, Serializable {
                 Math.max(v1.getZ(), v2.getZ())
         );
     }
-
+    
     /**
      * Gets the midpoint of two vectors.
      *
