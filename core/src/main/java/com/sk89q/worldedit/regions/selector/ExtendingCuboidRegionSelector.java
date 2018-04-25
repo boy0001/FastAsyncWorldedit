@@ -137,7 +137,7 @@ public class ExtendingCuboidRegionSelector extends CuboidRegionSelector {
 
     @Override
     public void explainSecondarySelection(Actor player, LocalSession session, Vector pos) {
-        BBC.SELECTOR_EXPANDED.send(player, 2, pos, region.getArea());
+        BBC.SELECTOR_EXPANDED.send(player, pos, region.getArea());
 
         explainRegionAdjust(player, session);
     }

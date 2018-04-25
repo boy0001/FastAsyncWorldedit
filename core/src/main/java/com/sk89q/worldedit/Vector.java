@@ -844,7 +844,10 @@ public class Vector implements Comparable<Vector>, Serializable {
 
     @Override
     public String toString() {
-        return "(" + getX() + ", " + getY() + ", " + getZ() + ")";
+        String x = "" + (getX() == getBlockX() ? getBlockX() : getX());
+        String y = "" + (getY() == getBlockY() ? getBlockY() : getY());
+        String z = "" + (getZ() == getBlockZ() ? getBlockZ() : getZ());
+        return "(" + x + ", " + y + ", " + z + ")";
     }
 
     /**
