@@ -73,14 +73,14 @@ public class HeightMap {
             int bz = min.getBlockZ();
             Iterable<Vector2D> flat = Regions.asFlatRegion(region).asFlatRegion();
             Iterator<Vector2D> iter = new Fast2DIterator(flat, session).iterator();
-            int y = 0;
+            int layer = 0;
             MutableBlockVector mutable = new MutableBlockVector();
             while (iter.hasNext()) {
                 Vector2D pos = iter.next();
                 int x = pos.getBlockX();
                 int z = pos.getBlockZ();
-                y = session.getNearestSurfaceLayer(x, z, y, 0, maxY);
-                data[(z - bz) * width + (x - bx)] = y;
+                layer = session.getNearestSurfaceLayer(x, z, (layer + 7) >> 3, 0, maxY);
+                data[(z - bz) * width + (x - bx)] = layer;
             }
         } else {
             // Store current heightmap data
