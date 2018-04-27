@@ -244,44 +244,44 @@ public class Fawe {
         this.timer = new FaweTimer();
         Fawe.this.IMP.setupVault();
 
-        // Delayed worldedit setup
-        TaskManager.IMP.later(new Runnable() {
-            @Override
-            public void run() {
+        File jar = MainUtil.getJarFile();
+        File extraBlocks = MainUtil.copyFile(jar, "extrablocks.json", null);
+        if (extraBlocks != null && extraBlocks.exists()) {
+            TaskManager.IMP.task(() -> {
                 try {
-                    transformParser = new DefaultTransformParser(getWorldEdit());
-                    visualQueue = new VisualQueue();
-                    WEManager.IMP.managers.addAll(Fawe.this.IMP.getMaskManagers());
-                    WEManager.IMP.managers.add(new PlotSquaredFeature());
-                    Fawe.debug("Plugin 'PlotSquared' found. Using it now.");
-                } catch (Throwable e) {
+                    BundledBlockData.getInstance().loadFromResource();
+                    BundledBlockData.getInstance().add(extraBlocks.toURI().toURL(), true);
+                } catch (Throwable ignore) {
+                    ignore.printStackTrace();
+                    Fawe.debug("Invalid format: extrablocks.json");
                 }
-            }
+            });
+        }
+
+        // Delayed worldedit setup
+        TaskManager.IMP.later(() -> {
+            try {
+                transformParser = new DefaultTransformParser(getWorldEdit());
+                visualQueue = new VisualQueue();
+                WEManager.IMP.managers.addAll(Fawe.this.IMP.getMaskManagers());
+                WEManager.IMP.managers.add(new PlotSquaredFeature());
+                Fawe.debug("Plugin 'PlotSquared' found. Using it now.");
+            } catch (Throwable e) {}
         }, 0);
 
         TaskManager.IMP.repeat(timer, 1);
 
-        if (Settings.IMP.UPDATE) {
-            // Delayed updating
-            updater = new Updater();
-            TaskManager.IMP.async(new Runnable() {
-                @Override
-                public void run() {
-                    update();
-                }
-            });
-            TaskManager.IMP.repeatAsync(new Runnable() {
-                @Override
-                public void run() {
-                    update();
-                }
-            }, 36000);
-        }
+//        if (Settings.IMP.UPDATE) {
+        // Delayed updating
+        updater = new Updater();
+        TaskManager.IMP.async(() -> update());
+        TaskManager.IMP.repeatAsync(() -> update(), 36000);
+//        }
     }
 
     private boolean update() {
         if (updater != null) {
-            updater.update(IMP.getPlatform(), getVersion());
+            updater.getUpdate(IMP.getPlatform(), getVersion());
             return true;
         }
         return false;
@@ -582,16 +582,6 @@ public class Fawe {
             // BlockData
             BlockData.inject(); // Temporary fix for 1.9.4
             BundledBlockData.inject(); // Add custom rotation
-            File jar = MainUtil.getJarFile();
-            File extraBlocks = MainUtil.copyFile(jar, "extrablocks.json", null);
-            if (extraBlocks != null && extraBlocks.exists()) {
-                try {
-                    BundledBlockData.getInstance().loadFromResource();
-                    BundledBlockData.getInstance().add(extraBlocks.toURI().toURL(), true);
-                } catch (Throwable ignore) {
-                    Fawe.debug("Invalid format: extrablocks.json");
-                }
-            }
             // NBT
             NBTInputStream.inject(); // Add actual streaming + Optimizations + New methods
             NBTOutputStream.inject(); // New methods
@@ -739,6 +729,7 @@ public class Fawe {
     public <T> void register(FawePlayer<T> player) {
         players.put(player.getName(), player);
         playersUUID.put(player.getUUID(), player);
+
     }
 
     public <T> void unregister(String name) {

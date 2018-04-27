@@ -268,7 +268,7 @@ public class MaskCommands extends MethodCommands {
             min = 2,
             max = 2
     )
-    public Mask angle(Extent extent, String min, String max, @Switch('o') boolean overlay) throws ExpressionException {
+    public Mask angle(Extent extent, String min, String max, @Switch('o') boolean overlay, @Optional("1") int distance) throws ExpressionException {
         double y1, y2;
         boolean override;
         if (max.endsWith("d")) {
@@ -280,7 +280,7 @@ public class MaskCommands extends MethodCommands {
             y1 = (Expression.compile(min).evaluate());
             y2 = (Expression.compile(max).evaluate());
         }
-        return new AngleMask(extent, y1, y2, overlay);
+        return new AngleMask(extent, y1, y2, overlay, distance);
     }
 
     @Command(

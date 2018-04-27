@@ -14,7 +14,6 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArraySet;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
-import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.lang.reflect.Type;
@@ -617,11 +616,6 @@ public class TextureUtil {
                                         break;
                                 }
                                 idMap.putIfAbsent(combined, texture);
-                            }
-
-
-                            if (block.getId() == 100) {
-                                System.out.println(100 + "Texture " + texture + " | " + id + " | " + block);
                             }
                         }
                     }
