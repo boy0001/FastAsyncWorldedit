@@ -16,6 +16,7 @@ public class AngleMask extends SolidBlockMask implements ResettableMask {
     private final double max;
     private final double min;
     private final boolean overlay;
+    private final boolean checkFirst;
     private int maxY;
 
     private transient MutableBlockVector mutable = new MutableBlockVector();
@@ -25,6 +26,7 @@ public class AngleMask extends SolidBlockMask implements ResettableMask {
         this.mask = new CachedMask(new SolidBlockMask(extent));
         this.min = min;
         this.max = max;
+        this.checkFirst = max >= (Math.tan(90 * (Math.PI / 180)));
         this.maxY = extent.getMaximumPoint().getBlockY();
         this.overlay = overlay;
     }
@@ -36,6 +38,7 @@ public class AngleMask extends SolidBlockMask implements ResettableMask {
         cacheBotZ = Integer.MIN_VALUE;
         lastX = Integer.MIN_VALUE;
         lastX = Integer.MIN_VALUE;
+        lastY = Integer.MIN_VALUE;
         if (cacheHeights != null) {
             Arrays.fill(cacheHeights, (byte) 0);
         }
@@ -48,7 +51,6 @@ public class AngleMask extends SolidBlockMask implements ResettableMask {
     private transient int cacheCenterZ;
 
     private transient byte[] cacheHeights;
-    private transient byte[] cacheDistance;
 
     private transient int lastY;
     private transient int lastX = Integer.MIN_VALUE;
@@ -70,19 +72,15 @@ public class AngleMask extends SolidBlockMask implements ResettableMask {
                 index = rx + (rz << 8);
                 if (cacheHeights == null) {
                     cacheHeights = new byte[65536];
-                    cacheDistance = new byte[65536];
                 } else {
                     Arrays.fill(cacheHeights, (byte) 0);
-                    Arrays.fill(cacheDistance, (byte) 0);
                 }
             } else {
                 index = rx + (rz << 8);
             }
             int result = cacheHeights[index] & 0xFF;
-            int distance = cacheDistance[index] & 0xFF;
-            if (result == 0 || distance < Math.abs(result - y)) {
+            if (y > result) {
                 cacheHeights[index] = (byte) (result = lastY = getExtent().getNearestSurfaceTerrainBlock(x, z, lastY, 0, maxY));
-                cacheDistance[index] = (byte) Math.abs(result - y);
             }
             return result;
         } catch (Throwable e) {
@@ -94,17 +92,22 @@ public class AngleMask extends SolidBlockMask implements ResettableMask {
     private boolean testSlope(int x, int y, int z) {
         double slope;
         boolean aboveMin;
-        if ((lastX == (lastX = x) & lastZ == (lastZ = z))) {
-            return lastValue;
-        }
+        lastY = y;
         slope = Math.abs(getHeight(x + 1, y, z) - getHeight(x - 1, y, z)) * ADJACENT_MOD;
-        if (slope >= min && max >= Math.max(maxY - y, y)) {
-            return lastValue = true;
+        if (checkFirst) {
+            if (slope >= min) {
+                return lastValue = true;
+            }
+            slope = Math.max(slope, Math.abs(getHeight(x, y, z + 1) - getHeight(x, y, z - 1)) * ADJACENT_MOD);
+            slope = Math.max(slope, Math.abs(getHeight(x + 1, y, z + 1) - getHeight(x - 1, y, z - 1)) * DIAGONAL_MOD);
+            slope = Math.max(slope, Math.abs(getHeight(x - 1, y, z + 1) - getHeight(x + 1, y, z - 1)) * DIAGONAL_MOD);
+            return lastValue = (slope >= min);
+        } else {
+            slope = Math.max(slope, Math.abs(getHeight(x, y, z + 1) - getHeight(x, y, z - 1)) * ADJACENT_MOD);
+            slope = Math.max(slope, Math.abs(getHeight(x + 1, y, z + 1) - getHeight(x - 1, y, z - 1)) * DIAGONAL_MOD);
+            slope = Math.max(slope, Math.abs(getHeight(x - 1, y, z + 1) - getHeight(x + 1, y, z - 1)) * DIAGONAL_MOD);
+            return lastValue = (slope >= min && slope <= max);
         }
-        slope = Math.max(slope, Math.abs(getHeight(x, y, z + 1) - getHeight(x, y, z - 1)) * ADJACENT_MOD);
-        slope = Math.max(slope, Math.abs(getHeight(x + 1, y, z + 1) - getHeight(x - 1, y, z - 1)) * DIAGONAL_MOD);
-        slope = Math.max(slope, Math.abs(getHeight(x - 1, y, z + 1) - getHeight(x + 1, y, z - 1)) * DIAGONAL_MOD);
-        return lastValue = (slope >= min && slope <= max);
     }
 
     public boolean adjacentAir(Vector v) {
@@ -137,6 +140,12 @@ public class AngleMask extends SolidBlockMask implements ResettableMask {
         int x = vector.getBlockX();
         int y = vector.getBlockY();
         int z = vector.getBlockZ();
+
+        if ((lastX == (lastX = x) & lastZ == (lastZ = z))) {
+            int height = getHeight(x, y, z);
+            if (y <= height) return overlay ? (lastValue && y == height) : lastValue;
+        }
+
         if (!mask.test(x, y, z)) {
             return false;
         }

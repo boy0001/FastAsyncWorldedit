@@ -210,7 +210,7 @@ public class LocalBlockVectorSet implements Set<Vector> {
         if (relX > 1023 || relX < -1024 || relZ > 1023 || relZ < -1024) {
             throw new UnsupportedOperationException("LocalVectorSet can only contain vectors within 1024 blocks (cuboid) of the first entry. ");
         }
-        if (y < 0 || y > 256) {
+        if (y < 0 || y > 255) {
             throw new UnsupportedOperationException("LocalVectorSet can only contain vectors from y elem:[0,255]");
         }
         int index = getIndex(x, y, z);
