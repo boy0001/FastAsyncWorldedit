@@ -264,7 +264,7 @@ public class MaskCommands extends MethodCommands {
                     "Explanation: Allows any block where the adjacent block is between 0 and 45 degrees.\n" +
                     "Example: /[3][20]\n" +
                     "Explanation: Allows any block where the adjacent block is between 3 and 20 blocks below",
-            usage = "<min> <max>",
+            usage = "<min> <max> [distance=1]",
             min = 2,
             max = 2
     )

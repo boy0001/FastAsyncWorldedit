@@ -71,7 +71,6 @@ import java.util.Set;
         " - Use , to OR multiple\n" +
         "e.g. #surfacespread[10][#existing],andesite\n" +
         "More Info: https://git.io/vSPmA"
-
 )
 public class PatternCommands extends MethodCommands {
     public PatternCommands(WorldEdit worldEdit) {
@@ -125,13 +124,13 @@ public class PatternCommands extends MethodCommands {
     @Command(
             aliases = {"#anglecolor"},
             desc = "A darker block based on the existing terrain angle",
-            usage = "[randomize=true] [max-complexity=100]",
+            usage = "[randomize=true] [max-complexity=100] [distance=1]",
             min = 0,
             max = 2
     )
-    public Pattern anglecolor(Extent extent, @Optional("true") boolean randomize, @Optional("100") double maxComplexity) {
+    public Pattern anglecolor(Extent extent, @Optional("true") boolean randomize, @Optional("100") double maxComplexity, @Optional("1") int distance) {
         TextureUtil util = Fawe.get().getCachedTextureUtil(randomize, 0, (int) maxComplexity);
-        return new AngleColorPattern(extent, (int) maxComplexity, randomize);
+        return new AngleColorPattern(extent, (int) maxComplexity, randomize, distance);
     }
 
     @Command(
@@ -139,7 +138,7 @@ public class PatternCommands extends MethodCommands {
             desc = "Block data based on the existing terrain angle"
     )
     public Pattern angledata(Extent extent) {
-        return new DataAnglePattern(extent);
+        return new DataAnglePattern(extent, 1);
     }
 
     @Command(

@@ -17,8 +17,8 @@ public class AngleColorPattern extends DataAnglePattern {
     private final boolean randomize;
     private final int complexity;
 
-    public AngleColorPattern(Extent extent, int complexity, boolean randomize) {
-        super(extent);
+    public AngleColorPattern(Extent extent, int complexity, boolean randomize, int distance) {
+        super(extent, distance);
         this.complexity = complexity;
         this.randomize = randomize;
         this.util = Fawe.get().getCachedTextureUtil(randomize, 0, complexity);
