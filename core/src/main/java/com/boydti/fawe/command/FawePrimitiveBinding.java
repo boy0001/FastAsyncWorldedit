@@ -70,9 +70,11 @@ public class FawePrimitiveBinding extends BindingHelper {
     }
     @BindingMatch(
             type = {BufferedImage.class},
-            behavior = BindingBehavior.CONSUMES
+            behavior = BindingBehavior.CONSUMES,
+            consumedCount = 1,
+            provideModifiers = true
     )
-    public BufferedImage getImage(ArgumentStack context) throws ParameterException {
+    public BufferedImage getImage(ArgumentStack context, Annotation[] modifiers) throws ParameterException {
         return ImageUtil.getImage(context.next());
     }
 

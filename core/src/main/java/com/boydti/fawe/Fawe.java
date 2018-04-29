@@ -69,9 +69,7 @@ import com.sk89q.worldedit.session.request.Request;
 import com.sk89q.worldedit.util.command.SimpleCommandMapping;
 import com.sk89q.worldedit.util.command.SimpleDispatcher;
 import com.sk89q.worldedit.util.command.fluent.DispatcherNode;
-import com.sk89q.worldedit.util.command.parametric.ParameterData;
-import com.sk89q.worldedit.util.command.parametric.ParametricBuilder;
-import com.sk89q.worldedit.util.command.parametric.ParametricCallable;
+import com.sk89q.worldedit.util.command.parametric.*;
 import com.sk89q.worldedit.util.formatting.Fragment;
 import com.sk89q.worldedit.util.formatting.component.CommandListBox;
 import com.sk89q.worldedit.util.formatting.component.CommandUsageBox;
@@ -449,6 +447,9 @@ public class Fawe {
             Request.inject(); // Custom pattern extent
             // Commands
             Commands.load(new File(INSTANCE.IMP.getDirectory(), "commands.yml"));
+            ArgumentStack.inject0(); // Mark/reset
+            ContextArgumentStack.inject();
+            StringArgumentStack.inject();
             Commands.inject(); // Translations
             BiomeCommands.inject(); // Translations + Optimizations
             ChunkCommands.inject(); // Translations + Optimizations

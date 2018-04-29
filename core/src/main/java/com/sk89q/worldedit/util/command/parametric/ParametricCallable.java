@@ -219,13 +219,15 @@ public class ParametricCallable implements CommandCallable {
                     ArgumentStack usedArguments = getScopedContext(parameter, arguments);
 
                     try {
+                        usedArguments.mark();
                         args[i] = parameter.getBinding().bind(parameter, usedArguments, false);
-                    } catch (MissingParameterException e) {
+                    } catch (ParameterException e) {
                         // Not optional? Then we can't execute this command
                         if (!parameter.isOptional()) {
                             throw e;
                         }
 
+                        usedArguments.reset();
                         args[i] = getDefaultValue(i, arguments);
                     }
                 } else {
@@ -254,6 +256,7 @@ public class ParametricCallable implements CommandCallable {
         } catch (UnconsumedParameterException e) {
             throw new InvalidUsageException("Too many parameters! Unused parameters: " + e.getUnconsumed(), this, true);
         } catch (ParameterException e) {
+            e.printStackTrace();
             assert parameter != null;
             String name = parameter.getName();
 
