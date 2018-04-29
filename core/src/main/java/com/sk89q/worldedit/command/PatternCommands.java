@@ -126,7 +126,7 @@ public class PatternCommands extends MethodCommands {
             desc = "A darker block based on the existing terrain angle",
             usage = "[randomize=true] [max-complexity=100] [distance=1]",
             min = 0,
-            max = 2
+            max = 3
     )
     public Pattern anglecolor(Extent extent, @Optional("true") boolean randomize, @Optional("100") double maxComplexity, @Optional("1") int distance) {
         TextureUtil util = Fawe.get().getCachedTextureUtil(randomize, 0, (int) maxComplexity);

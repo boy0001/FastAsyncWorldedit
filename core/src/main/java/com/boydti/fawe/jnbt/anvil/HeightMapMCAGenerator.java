@@ -282,10 +282,10 @@ public class HeightMapMCAGenerator extends MCAWriter implements StreamChange, Dr
             int pcx = (position.x >> 4) - OX;
             int pcz = (position.z >> 4) - OZ;
 
-            int scx = Math.max(0, pcx - 10);
-            int scz = Math.max(0, pcz - 10);
-            int ecx = Math.min(lenCX - 1, pcx + 10);
-            int ecz = Math.min(lenCZ - 1, pcz + 10);
+            int scx = Math.max(0, pcx - 15);
+            int scz = Math.max(0, pcz - 15);
+            int ecx = Math.min(lenCX - 1, pcx + 15);
+            int ecz = Math.min(lenCZ - 1, pcz + 15);
 
             MCAChunk chunk = new MCAChunk(this, 0, 0);
             for (int cz = scz; cz <= ecz; cz++) {

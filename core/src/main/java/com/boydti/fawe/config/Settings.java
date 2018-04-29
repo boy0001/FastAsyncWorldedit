@@ -30,14 +30,14 @@ public class Settings extends Config {
     public boolean UPDATE = false;
     @Comment("Send anonymous usage statistics")
     public boolean METRICS = true;
-    @Comment("FAWE will skip chunks when there's not enough memory available")
-    public boolean PREVENT_CRASHES = false;
     @Comment({
             "Set true to enable WorldEdit restrictions per region (e.g. PlotSquared or WorldGuard).",
             "To be allowed to WorldEdit in a region, users need the appropriate",
             "fawe.<plugin>  permission. See the Permissions page for supported region plugins."
     })
     public boolean REGION_RESTRICTIONS = true;
+    @Comment("FAWE will skip chunks when there's not enough memory available")
+    public boolean PREVENT_CRASHES = false;
     @Comment({
             "FAWE will cancel non admin edits when memory consumption exceeds this %",
             " - Bypass with `/wea` or `//fast` or `fawe.bypass`",
