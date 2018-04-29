@@ -256,10 +256,10 @@ public class MaskCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = {"\\", "/"},
+            aliases = {"\\", "/", "#angle"},
             desc = "Restrict to specific terrain angle",
             help = "Restrict to specific terrain angle\n" +
-                    "The -o flag will only overlay" +
+                    "The -o flag will only overlay\n" +
                     "Example: /[0d][45d]\n" +
                     "Explanation: Allows any block where the adjacent block is between 0 and 45 degrees.\n" +
                     "Example: /[3][20]\n" +
@@ -281,6 +281,33 @@ public class MaskCommands extends MethodCommands {
             y2 = (Expression.compile(max).evaluate());
         }
         return new AngleMask(extent, y1, y2, overlay, distance);
+    }
+
+    @Command(
+            aliases = {"(", ")", "#roc"},
+            desc = "Restrict to near specific terrain slope rate of change",
+            help = "Restrict to near specific terrain slope rate of change\n" +
+                    "The -o flag will only overlay\n" +
+                    "Example: ([0d][45d][5]\n" +
+                    "Explanation: Restrict near where the angle changes between 0-45 degrees within 5 blocks\n" +
+                    "Note: Use negatives for decreasing slope",
+            usage = "<min> <max> [distance=1]",
+            min = 2,
+            max = 2
+    )
+    public Mask roc(Extent extent, String min, String max, @Switch('o') boolean overlay, @Optional("4") int distance) throws ExpressionException {
+        double y1, y2;
+        boolean override;
+        if (max.endsWith("d")) {
+            double y1d = Expression.compile(min.substring(0, min.length() - 1)).evaluate();
+            double y2d = Expression.compile(max.substring(0, max.length() - 1)).evaluate();
+            y1 = (Math.tan(y1d * (Math.PI / 180)));
+            y2 = (Math.tan(y2d * (Math.PI / 180)));
+        } else {
+            y1 = (Expression.compile(min).evaluate());
+            y2 = (Expression.compile(max).evaluate());
+        }
+        return new ROCAngleMask(extent, y1, y2, overlay, distance);
     }
 
     @Command(

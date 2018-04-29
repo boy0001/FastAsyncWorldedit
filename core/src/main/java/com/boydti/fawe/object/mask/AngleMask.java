@@ -12,15 +12,15 @@ public class AngleMask extends SolidBlockMask implements ResettableMask {
     public static double ADJACENT_MOD = 0.5;
     public static double DIAGONAL_MOD = 1 / Math.sqrt(8);
 
-    private final CachedMask mask;
-    private final double max;
-    private final double min;
-    private final boolean overlay;
-    private final boolean checkFirst;
-    private final int maxY;
-    private final int distance;
+    protected final CachedMask mask;
+    protected final double max;
+    protected final double min;
+    protected final boolean overlay;
+    protected final boolean checkFirst;
+    protected final int maxY;
+    protected final int distance;
 
-    private transient MutableBlockVector mutable = new MutableBlockVector();
+    protected transient MutableBlockVector mutable = new MutableBlockVector();
 
     public AngleMask(Extent extent, double min, double max, boolean overlay, int distance) {
         super(extent);
@@ -46,19 +46,19 @@ public class AngleMask extends SolidBlockMask implements ResettableMask {
         }
     }
 
-    private transient int cacheCenX;
-    private transient int cacheCenZ;
-    private transient int cacheBotX = Integer.MIN_VALUE;
-    private transient int cacheBotZ = Integer.MIN_VALUE;
-    private transient int cacheCenterZ;
+    protected transient int cacheCenX;
+    protected transient int cacheCenZ;
+    protected transient int cacheBotX = Integer.MIN_VALUE;
+    protected transient int cacheBotZ = Integer.MIN_VALUE;
+    protected transient int cacheCenterZ;
 
-    private transient byte[] cacheHeights;
+    protected transient byte[] cacheHeights;
 
-    private transient int lastY;
-    private transient int lastX = Integer.MIN_VALUE;
-    private transient int lastZ = Integer.MIN_VALUE;
-    private transient boolean foundY;
-    private transient boolean lastValue;
+    protected transient int lastY;
+    protected transient int lastX = Integer.MIN_VALUE;
+    protected transient int lastZ = Integer.MIN_VALUE;
+    protected transient boolean foundY;
+    protected transient boolean lastValue;
 
     public int getHeight(int x, int y, int z) {
 //        return getExtent().getNearestSurfaceTerrainBlock(x, z, y, 0, maxY);
@@ -91,7 +91,7 @@ public class AngleMask extends SolidBlockMask implements ResettableMask {
         }
     }
 
-    private boolean testSlope(int x, int y, int z) {
+    protected boolean testSlope(int x, int y, int z) {
         double slope;
         boolean aboveMin;
         lastY = y;
