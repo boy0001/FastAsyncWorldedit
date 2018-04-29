@@ -135,10 +135,11 @@ public class PatternCommands extends MethodCommands {
 
     @Command(
             aliases = {"#angledata"},
+            usage = "[distance=1]",
             desc = "Block data based on the existing terrain angle"
     )
-    public Pattern angledata(Extent extent) {
-        return new DataAnglePattern(extent, 1);
+    public Pattern angledata(Extent extent, @Optional("1") int distance) {
+        return new DataAnglePattern(extent, distance);
     }
 
     @Command(

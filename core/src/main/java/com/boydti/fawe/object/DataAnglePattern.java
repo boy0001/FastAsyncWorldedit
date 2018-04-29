@@ -9,15 +9,16 @@ import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.function.pattern.AbstractPattern;
 
 public class DataAnglePattern extends AbstractPattern {
+    public final double FACTOR;
     public final Extent extent;
     public final int maxY;
-    public final double factor = 1d / 255;
     public final int distance;
 
     public DataAnglePattern(Extent extent, int distance) {
         this.extent = new ExtentHeightCacher(extent);
         this.maxY = extent.getMaximumPoint().getBlockY();
         this.distance = distance;
+        this.FACTOR = (1D / distance) * (1D / 255);
     }
 
     public int getSlope(BaseBlock block, Vector vector) {

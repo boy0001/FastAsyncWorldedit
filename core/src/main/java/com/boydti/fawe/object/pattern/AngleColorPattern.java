@@ -11,7 +11,6 @@ import com.sk89q.worldedit.extent.Extent;
 import java.io.IOException;
 
 public class AngleColorPattern extends DataAnglePattern {
-    private static final double FACTOR = 1d / 256;
     private transient TextureUtil util;
 
     private final boolean randomize;
@@ -26,7 +25,7 @@ public class AngleColorPattern extends DataAnglePattern {
 
     public int getColor(int color, int slope) {
         if (slope == 0) return color;
-        double newFactor = (256 - Math.min(256, slope)) * FACTOR;
+        double newFactor = (1 - Math.min(1, slope * FACTOR));
         int newRed = (int) (((color >> 16) & 0xFF) * newFactor);
         int newGreen = (int) (((color >> 8) & 0xFF) * newFactor);
         int newBlue = (int) (((color >> 0) & 0xFF) * newFactor);

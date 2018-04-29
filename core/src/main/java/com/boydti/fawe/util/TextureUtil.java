@@ -628,6 +628,7 @@ public class TextureUtil {
                                 BufferedImage image = ImageIO.read(is);
                                 int color = ImageUtil.getColor(image);
                                 long distance = getDistance(image, color);
+                                if (combined == BlockID.MYCELIUM << 4) distance = Long.MAX_VALUE;
                                 distanceMap.put((int) combined, (Long) distance);
                                 colorMap.put((int) combined, (Integer) color);
                             }
