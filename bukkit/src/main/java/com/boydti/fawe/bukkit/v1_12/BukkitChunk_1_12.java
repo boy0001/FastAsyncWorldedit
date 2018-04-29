@@ -3,6 +3,7 @@ package com.boydti.fawe.bukkit.v1_12;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.bukkit.v0.BukkitQueue_0;
+import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweQueue;
@@ -246,7 +247,7 @@ public class BukkitChunk_1_12 extends CharFaweChunk<Chunk, BukkitQueue_1_12> {
                             ents.clear();
                         }
                     }
-                } else {
+                } else if (!getParent().getSettings().EXPERIMENTAL.KEEP_ENTITIES_IN_BLOCKS) {
                     Collection<Entity> ents = entities[i];
                     if (!ents.isEmpty()) {
                         int layerYStart = i << 4;

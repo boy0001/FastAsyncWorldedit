@@ -324,6 +324,12 @@ public class Settings extends Config {
                 "Disable using native libraries",
         })
         public boolean DISABLE_NATIVES = false;
+
+        @Comment({
+                "[SAFE] Keep entities that are positioned in non-air blocks when editing an area",
+                "Might cause client-side FPS lagg in some situations"
+        })
+        public boolean KEEP_ENTITIES_IN_BLOCKS = false;
     }
 
     public static class WEB {

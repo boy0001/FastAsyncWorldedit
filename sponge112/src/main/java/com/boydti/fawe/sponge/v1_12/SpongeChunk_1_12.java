@@ -185,7 +185,7 @@ public class SpongeChunk_1_12 extends CharFaweChunk<Chunk, SpongeQueue_1_12> {
                             entities[i] = new ClassInheritanceMultiMap<>(Entity.class);
                         }
                     }
-                } else {
+                } else if (!getParent().getSettings().EXPERIMENTAL.KEEP_ENTITIES_IN_BLOCKS) {
                     char[] array = this.getIdArray(i);
                     Collection<Entity> ents = new ArrayList<>(entities[i]);
                     synchronized (SpongeChunk_1_12.class) {
