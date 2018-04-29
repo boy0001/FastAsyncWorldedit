@@ -169,7 +169,7 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
                     continue;
                 } else if (count >= 4096) {
                     entities[i].clear();
-                } else {
+                } else if (!getParent().getSettings().EXPERIMENTAL.KEEP_ENTITIES_IN_BLOCKS) {
                     char[] array = this.getIdArray(i);
                     if (array == null || entities[i] == null || entities[i].isEmpty()) continue;
                     Collection<Entity> ents = new ArrayList<>(entities[i]);
