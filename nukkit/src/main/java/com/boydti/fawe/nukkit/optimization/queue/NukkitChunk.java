@@ -96,7 +96,7 @@ public class NukkitChunk extends CharFaweChunk<BaseFullChunk, NukkitQueue> {
         }
 
         Map<Long, Entity> ents = chunk.getEntities();
-        if (!ents.isEmpty()) {
+        if (!ents.isEmpty() && !getParent().getSettings().EXPERIMENTAL.KEEP_ENTITIES_IN_BLOCKS) {
             Iterator<Map.Entry<Long, Entity>> iter = ents.entrySet().iterator();
             while (iter.hasNext()) {
                 Map.Entry<Long, Entity> entry = iter.next();

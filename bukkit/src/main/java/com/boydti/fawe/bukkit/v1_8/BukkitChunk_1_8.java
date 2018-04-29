@@ -93,7 +93,7 @@ public class BukkitChunk_1_8 extends CharFaweChunk<Chunk, BukkitQueue18R3> {
                             ents.clear();
                         }
                     }
-                } else {
+                } else if (!getParent().getSettings().EXPERIMENTAL.KEEP_ENTITIES_IN_BLOCKS) {
                     Collection<Entity> ents = entities[i];
                     if (!ents.isEmpty()) {
                         char[] array = this.getIdArray(i);

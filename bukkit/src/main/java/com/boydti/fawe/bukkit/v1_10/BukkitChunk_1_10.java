@@ -247,7 +247,7 @@ public class BukkitChunk_1_10 extends CharFaweChunk<Chunk, BukkitQueue_1_10> {
                             ents.clear();
                         }
                     }
-                } else {
+                } else if (!getParent().getSettings().EXPERIMENTAL.KEEP_ENTITIES_IN_BLOCKS) {
                     Collection<net.minecraft.server.v1_10_R1.Entity> ents = entities[i];
                     if (!ents.isEmpty()) {
                         char[] array = this.getIdArray(i);
