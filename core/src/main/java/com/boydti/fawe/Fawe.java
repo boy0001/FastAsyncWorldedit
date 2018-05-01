@@ -150,6 +150,8 @@ public class Fawe {
     private DefaultTransformParser transformParser;
     private ChatManager chatManager = new PlainChatManager();
 
+    private BStats stats;
+
     /**
      * Get the implementation specific class
      *
@@ -222,7 +224,7 @@ public class Fawe {
         TaskManager.IMP = this.IMP.getTaskManager();
         if (Settings.IMP.METRICS) {
             try {
-                BStats stats = new BStats();
+                this.stats = new BStats();
                 this.IMP.startMetrics();
                 TaskManager.IMP.later(new Runnable() {
                     @Override
@@ -274,6 +276,12 @@ public class Fawe {
             updater = new Updater();
             TaskManager.IMP.async(() -> update());
             TaskManager.IMP.repeatAsync(() -> update(), 36000);
+        }
+    }
+
+    public void onDisable() {
+        if (stats != null) {
+            stats.close();
         }
     }
 
