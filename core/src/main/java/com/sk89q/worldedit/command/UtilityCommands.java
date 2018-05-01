@@ -893,7 +893,7 @@ public class UtilityCommands extends MethodCommands {
         StringBuilder name = new StringBuilder();
         if (relative.isAbsolute()) {
             relative = root.toURI().relativize(file.toURI());
-            name.append("../");
+            name.append(".." + File.separator);
         }
         name.append(relative.getPath());
         return name.toString();
