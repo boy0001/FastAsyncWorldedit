@@ -98,7 +98,9 @@ public class FaweBukkit implements IFawe, Listener {
                 com.sk89q.worldedit.bukkit.BukkitPlayer.inject(); // Fixes
                 BukkitWorld.inject(); // Fixes
                 BukkitPlayerBlockBag.inject(); // features
-                FallbackRegistrationListener.inject(); // Fixes
+                try {
+                    FallbackRegistrationListener.inject(); // Fixes
+                } catch (Throwable ignore) {} // Not important at all
             } catch (Throwable e) {
                 debug("========= INJECTOR FAILED =========");
                 e.printStackTrace();
