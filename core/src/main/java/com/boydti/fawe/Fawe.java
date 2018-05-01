@@ -269,12 +269,12 @@ public class Fawe {
 
         TaskManager.IMP.repeat(timer, 1);
 
-//        if (Settings.IMP.UPDATE) {
-        // Delayed updating
-        updater = new Updater();
-        TaskManager.IMP.async(() -> update());
-        TaskManager.IMP.repeatAsync(() -> update(), 36000);
-//        }
+        if (!Settings.IMP.UPDATE.equalsIgnoreCase("false")) {
+            // Delayed updating
+            updater = new Updater();
+            TaskManager.IMP.async(() -> update());
+            TaskManager.IMP.repeatAsync(() -> update(), 36000);
+        }
     }
 
     private boolean update() {

@@ -26,8 +26,9 @@ public class Settings extends Config {
     @Comment({"Options: de, ru, tr",
             "Create a PR to contribute a translation: https://github.com/boy0001/FastAsyncWorldedit/new/master/core/src/main/resources",})
     public String LANGUAGE = "";
-    @Comment("Enable or disable automatic updates")
-    public boolean UPDATE = false;
+    @Comment({"Enable or disable automatic updates",
+                " - true = update automatically in the background"})
+    public String UPDATE = "confirm";
     @Comment("Send anonymous usage statistics")
     public boolean METRICS = true;
     @Comment({
