@@ -7,20 +7,9 @@ import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.extension.platform.CommandManager;
-import com.sk89q.worldedit.util.command.CommandCallable;
-import com.sk89q.worldedit.util.command.CommandMapping;
-import com.sk89q.worldedit.util.command.DelegateCallable;
-import com.sk89q.worldedit.util.command.Dispatcher;
-import com.sk89q.worldedit.util.command.PrimaryAliasComparator;
+import com.sk89q.worldedit.util.command.*;
 import com.sk89q.worldedit.util.command.parametric.ParametricCallable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 
 public abstract class HelpBuilder implements Runnable {
     private final CommandCallable callable;
@@ -57,7 +46,7 @@ public abstract class HelpBuilder implements Runnable {
                     }
                     effectiveLength--;
                 }
-            } catch (NumberFormatException ignored) {
+            } catch (Exception ignored) {
             }
 
             boolean isRootLevel = true;
