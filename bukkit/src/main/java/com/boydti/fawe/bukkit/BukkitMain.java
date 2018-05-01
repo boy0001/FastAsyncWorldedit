@@ -29,10 +29,12 @@ public class BukkitMain extends JavaPlugin {
                 pluginsField.set(manager, new ArrayList<Plugin>(plugins) {
                     @Override
                     public boolean add(Plugin plugin) {
-                        if (!plugin.getName().startsWith("AsyncWorldEdit")) {
-                            return super.add(plugin);
-                        } else {
+                        if (plugin.getName().startsWith("AsyncWorldEdit")) {
                             Fawe.debug("Disabling `" + plugin.getName() + "` as it is incompatible");
+                        } else if (plugin.getName().startsWith("BetterShutdown")) {
+                            Fawe.debug("Disabling `" + plugin.getName() + "` as it is incompatible (Improperly shaded classes from com.sk89q.minecraft.util.commands)");
+                        } else {
+                            return super.add(plugin);
                         }
                         return false;
                     }
@@ -40,10 +42,11 @@ public class BukkitMain extends JavaPlugin {
                 lookupNamesField.set(manager, new ConcurrentHashMap<String, Plugin>(lookupNames) {
                     @Override
                     public Plugin put(String key, Plugin plugin) {
-                        if (!plugin.getName().startsWith("AsyncWorldEdit")) {
-                            return super.put(key, plugin);
+                        if (plugin.getName().startsWith("AsyncWorldEdit") || plugin.getName().startsWith("BetterShutdown")) {
+                            return null;
                         }
-                        return null;
+                        return super.put(key, plugin);
+
                     }
                 });
             } catch (Throwable ignore) {}
