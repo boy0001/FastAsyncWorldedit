@@ -251,6 +251,10 @@ public class SchematicCommands extends MethodCommands {
                 }
                 if (!f.exists() || !MainUtil.isInSubDirectory(working, f)) {
                     player.printError("Schematic " + filename + " does not exist! (" + f.exists() + "|" + f + "|" + (!MainUtil.isInSubDirectory(working, f)) + ")");
+                    File absolute = f.getAbsoluteFile();
+                    player.printError("TEST0 " + absolute + " = " + absolute.exists());
+                    player.printError("TEST1 " + MainUtil.relativize(absolute.getPath()) + " = " + new File(MainUtil.relativize(absolute.getPath())).exists());
+                    player.printError("TEST1 " + MainUtil.relativize(f.getPath()) + " = " + new File(MainUtil.relativize(f.getPath())).exists());
                     return;
                 }
                 in = new FileInputStream(f);
