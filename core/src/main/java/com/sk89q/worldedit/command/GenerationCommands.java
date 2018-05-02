@@ -119,7 +119,7 @@ public class GenerationCommands extends MethodCommands {
             desc = "Generate an image",
             usage = "<imgur> [randomize=true] [complexity=100] [dimensions]",
             min = 1,
-            max = 3
+            max = 4
     )
     @CommandPermissions("worldedit.generation.image")
     @Logging(PLACEMENT)
