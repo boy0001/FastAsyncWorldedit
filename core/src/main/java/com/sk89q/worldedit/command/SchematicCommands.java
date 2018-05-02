@@ -516,6 +516,17 @@ public class SchematicCommands extends MethodCommands {
                     }
                 }
             });
+            long total = count.longValue();
+            if (total == 0) {
+                if (args.getJoinedStrings(0).toLowerCase().startsWith("all")) {
+                    BBC.SCHEMATIC_NONE.send(player);
+                } else {
+                    String joined = args.getJoinedStrings(0);
+                    String cmd = "/" + Commands.getAlias(SchematicCommands.class, "schematic") + " " + getCommand().aliases()[0] + " all " + joined;
+                    BBC.HELP_SUGGEST.send(player, joined, cmd);
+                }
+                return;
+            }
             visExtent.bind();
             visExtent.update();
 
