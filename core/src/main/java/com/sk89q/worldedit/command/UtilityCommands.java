@@ -24,6 +24,7 @@ import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.command.FaweParser;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Commands;
+import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.DelegateConsumer;
 import com.boydti.fawe.object.FaweLimit;
 import com.boydti.fawe.object.FawePlayer;
@@ -706,7 +707,7 @@ public class UtilityCommands extends MethodCommands {
         String dirFilter = File.separator;
 
         boolean listMine = false;
-        boolean listGlobal = false;
+        boolean listGlobal = !Settings.IMP.PATHS.PER_PLAYER_SCHEMATICS;
         if (len > 0) {
             int max = len;
             if (MathMan.isInteger(args.getString(len - 1))) {
@@ -733,7 +734,7 @@ public class UtilityCommands extends MethodCommands {
                         if (arg.endsWith("/") || arg.endsWith(File.separator)) {
                             arg = arg.replace("/", File.separator);
                             String newDirFilter = dirFilter + arg;
-                            boolean exists = new File(dir, newDirFilter).exists() || playerFolder && new File(dir, actor.getUniqueId() + newDirFilter).exists();
+                            boolean exists = new File(dir, newDirFilter).exists() || playerFolder && MainUtil.resolveRelative(new File(dir, actor.getUniqueId() + newDirFilter)).exists();
                             if (!exists) {
                                 arg = arg.substring(0, arg.length() - File.separator.length());
                                 if (arg.length() > 3 && arg.length() <= 16) {
@@ -795,11 +796,11 @@ public class UtilityCommands extends MethodCommands {
         }
         if (playerFolder) {
             if (listMine) {
-                File playerDir = new File(dir, actor.getUniqueId() + dirFilter);
+                File playerDir = MainUtil.resolveRelative(new File(dir, actor.getUniqueId() + dirFilter));
                 if (playerDir.exists()) allFiles(playerDir.listFiles(), false, forEachFile);
             }
             if (listGlobal) {
-                File rel = new File(dir, dirFilter);
+                File rel = MainUtil.resolveRelative(new File(dir, dirFilter));
                 forEachFile = new DelegateConsumer<File>(forEachFile) {
                     @Override
                     public void accept(File f) {
@@ -815,7 +816,7 @@ public class UtilityCommands extends MethodCommands {
                 if (rel.exists()) allFiles(rel.listFiles(), false, forEachFile);
             }
         } else {
-            File rel = new File(dir, dirFilter);
+            File rel = MainUtil.resolveRelative(new File(dir, dirFilter));
             if (rel.exists()) allFiles(rel.listFiles(), false, forEachFile);
         }
         if (!filters.isEmpty() && !toFilter.isEmpty()) {

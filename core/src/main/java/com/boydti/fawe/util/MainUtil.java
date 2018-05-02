@@ -176,6 +176,11 @@ public class MainUtil {
         }
     }
 
+    public static File resolveRelative(File file) {
+        if (!file.exists()) return new File(relativize(file.getPath()));
+        return file;
+    }
+
     public static String relativize(String path) {
         String[] split = path.split(Pattern.quote(File.separator));
         StringBuilder out = new StringBuilder();

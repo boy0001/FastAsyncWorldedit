@@ -232,7 +232,7 @@ public class SchematicCommands extends MethodCommands {
                     if (!filename.matches(".*\\.[\\w].*")) {
                         filename += "." + format.getExtension();
                     }
-                    f = new File(dir, filename);
+                    f = MainUtil.resolveRelative(new File(dir, filename));
                 }
                 if (f.getName().replaceAll("." + format.getExtension(), "").isEmpty()) {
                     File directory = f.getParentFile();
@@ -251,10 +251,6 @@ public class SchematicCommands extends MethodCommands {
                 }
                 if (!f.exists() || !MainUtil.isInSubDirectory(working, f)) {
                     player.printError("Schematic " + filename + " does not exist! (" + f.exists() + "|" + f + "|" + (!MainUtil.isInSubDirectory(working, f)) + ")");
-                    File absolute = f.getAbsoluteFile();
-                    player.printError("TEST0 " + absolute + " = " + absolute.exists());
-                    player.printError("TEST1 " + MainUtil.relativize(absolute.getPath()) + " = " + new File(MainUtil.relativize(absolute.getPath())).exists());
-                    player.printError("TEST1 " + MainUtil.relativize(f.getPath()) + " = " + new File(MainUtil.relativize(f.getPath())).exists());
                     return;
                 }
                 in = new FileInputStream(f);
@@ -415,7 +411,8 @@ public class SchematicCommands extends MethodCommands {
         if (filename.equalsIgnoreCase("*")) {
             files.addAll(getFiles(session.getClipboard()));
         } else {
-            files.add(new File(dir, filename));
+            File f = MainUtil.resolveRelative(new File(dir, filename));
+            files.add(f);
         }
         if (files.isEmpty()) {
             BBC.SCHEMATIC_NONE.send(player);
@@ -609,7 +606,7 @@ public class SchematicCommands extends MethodCommands {
                     else if (hasShow) msg.text("&7[&3O&7]").command(showCmd + " " + args.getJoinedStrings(0) + " " + relFilePath).tooltip("Show");
                     msg.text(color + name);
                     if (isDir) {
-                        msg.command(list + " " + args.getJoinedStrings(0) + " " + relFilePath).tooltip("Load");
+                        msg.command(list + " " + relFilePath).tooltip("List");
                     } else {
                         msg.command(loadSingle + " " + relFilePath).tooltip("Load");
                     }
