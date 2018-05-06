@@ -31,13 +31,7 @@ import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
 import com.sk89q.minecraft.util.commands.Logging;
-import com.sk89q.worldedit.EditSession;
-import com.sk89q.worldedit.LocalSession;
-import com.sk89q.worldedit.MutableBlockVector;
-import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.Vector2D;
-import com.sk89q.worldedit.WorldEdit;
-import com.sk89q.worldedit.WorldEditException;
+import com.sk89q.worldedit.*;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.function.RegionFunction;
@@ -117,7 +111,7 @@ public class GenerationCommands extends MethodCommands {
     @Command(
             aliases = {"/image", "/img"},
             desc = "Generate an image",
-            usage = "<imgur> [randomize=true] [complexity=100] [dimensions]",
+            usage = "<imgur> [randomize=true] [complexity=100] [dimensions=100,100]",
             min = 1,
             max = 4
     )
@@ -149,7 +143,8 @@ public class GenerationCommands extends MethodCommands {
                     int color = finalImage.getRGB(x, z);
                     BaseBlock block = tu.getNearestBlock(color);
                     count[0]++;
-                    return editSession.setBlockFast(pos, block);
+                    if (block != null) return editSession.setBlockFast(pos, block);
+                    return false;
                 } catch (Throwable e) {
                     e.printStackTrace();
                 }
