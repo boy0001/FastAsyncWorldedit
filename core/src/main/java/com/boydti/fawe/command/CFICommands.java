@@ -52,6 +52,7 @@ import com.sk89q.worldedit.world.biome.BaseBiome;
 import com.sk89q.worldedit.world.registry.BundledBlockData;
 import com.sk89q.worldedit.world.registry.WorldData;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -90,7 +91,21 @@ public class CFICommands extends MethodCommands {
             desc = "Start CFI with a height map as a base"
     )
     @CommandPermissions("worldedit.anvil.cfi")
-    public void heightmap(FawePlayer fp, BufferedImage image) {
+    public void heightmap(FawePlayer fp, BufferedImage image, @Optional("1") double yscale) {
+        if (yscale != 0) {
+            int[] raw = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
+            int[] table = new int[256];
+            for (int i = 0; i < table.length; i++) {
+                table[i] = Math.min(255, (int) (i * yscale));
+            }
+            for (int i = 0; i < raw.length; i++) {
+                int color = raw[i];
+                int red = table[(color >> 16) & 0xFF];
+                int green = table[(color >> 8) & 0xFF];
+                int blue = table[(color >> 0) & 0xFF];
+                raw[i] = (red << 16) + (green << 8) + (blue << 0);
+            }
+        }
         HeightMapMCAGenerator generator = new HeightMapMCAGenerator(image, getFolder(generateName()));
         setup(generator, fp);
     }
@@ -887,7 +902,7 @@ public class CFICommands extends MethodCommands {
     )
     @CommandPermissions("worldedit.anvil.cfi")
     public void image(FawePlayer fp, @Optional BufferedImage image, CommandContext context) throws ParameterException, CommandException {
-        CFISettings settings = getSettings(fp).bind();
+        CFISettings settings = getSettings(fp);
         String[] split = getArguments(context).split(" ");
         int index = 2;
 
