@@ -60,7 +60,7 @@ public class ExtentTraverser<T extends Extent> {
     }
 
     public <U> U findAndGet(Class<U> clazz) {
-        ExtentTraverser<Extent> traverser = find(clazz);
+        ExtentTraverser<Extent> traverser = find((Class) clazz);
         return (traverser != null) ? (U) traverser.get() : null;
     }
 
@@ -68,7 +68,7 @@ public class ExtentTraverser<T extends Extent> {
         try {
             ExtentTraverser<T> value = this;
             while (value != null) {
-                if (clazz.isInstance(value.root)) {
+                if (clazz.isAssignableFrom(value.root.getClass())) {
                     return (ExtentTraverser<U>) value;
                 }
                 value = value.next();

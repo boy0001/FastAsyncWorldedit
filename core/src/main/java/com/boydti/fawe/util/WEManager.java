@@ -15,9 +15,8 @@ import com.sk89q.worldedit.extent.AbstractDelegateExtent;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.regions.Region;
 import java.lang.reflect.Field;
-import java.util.ArrayDeque;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class WEManager {
 
@@ -98,33 +97,37 @@ public class WEManager {
         }
         player.setMeta("lastMaskWorld", world);
         Set<FaweMask> masks = player.getMeta("lastMask");
-        HashSet<Region> regions = new HashSet<>();
+        Set<Region> backupRegions = new HashSet<>();
+        Set<Region> regions = new HashSet<>();
+
+
         if (masks == null) {
             masks = new HashSet<>();
         } else {
-            boolean removed = false;
-            if (masks.isEmpty()) {
-                removed = true;
-            } else {
-                for (FaweMask mask : masks) {
-                    Region region = mask.getRegion();
-                    if (!region.contains(loc.x, loc.y, loc.z)) {
-                        removed = true;
+            synchronized (masks) {
+                boolean removed = false;
+                if (!masks.isEmpty()) {
+                    Iterator<FaweMask> iter = masks.iterator();
+                    while (iter.hasNext()) {
+                        FaweMask mask = iter.next();
+                        if (mask.isValid(player, type)) {
+                            Region region = mask.getRegion();
+                            if (region.contains(loc.x, loc.y, loc.z)) {
+                                regions.add(region);
+                            } else {
+                                removed = true;
+                                backupRegions.add(region);
+                            }
+                        } else {
+                            removed = true;
+                            iter.remove();
+                        }
                     }
-                    if (!mask.isValid(player, type)) {
-                        removed = true;
-                        break;
-                    }
-                    regions.add(region);
                 }
-            }
-            if (removed) {
-                masks.clear();
-                regions.clear();
-            } else {
-                return regions.toArray(new Region[regions.size()]);
+                if (!removed) return regions.toArray(new Region[regions.size()]);
             }
         }
+        Set<FaweMask> tmpMasks = new HashSet<>();
         for (final FaweMaskManager manager : managers) {
             if (player.hasPermission("fawe." + manager.getKey())) {
                 try {
@@ -137,6 +140,12 @@ public class WEManager {
                     e.printStackTrace();
                 }
             }
+        }
+        if (!tmpMasks.isEmpty()) {
+            masks = tmpMasks;
+            regions = masks.stream().map(mask -> mask.getRegion()).collect(Collectors.toSet());
+        } else {
+            regions.addAll(backupRegions);
         }
         if (!masks.isEmpty()) {
             player.setMeta("lastMask", masks);

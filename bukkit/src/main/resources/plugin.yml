@@ -18,6 +18,8 @@ permissions:
         fawe.plotsquared.trusted: true
   fawe.plotme:
     default: true
+  fawe.bypass.regions:
+    default: false
   fawe.bypass:
     default: false
     children:
