@@ -27,7 +27,10 @@ public class Settings extends Config {
             "Create a PR to contribute a translation: https://github.com/boy0001/FastAsyncWorldedit/new/master/core/src/main/resources",})
     public String LANGUAGE = "";
     @Comment({"Enable or disable automatic updates",
-                " - true = update automatically in the background"})
+            " - true = update automatically in the background",
+            " - confirm = prompt an admin to confirm each update",
+            " - false = do not update the plugin"
+    })
     public String UPDATE = "confirm";
     @Comment("Send anonymous usage statistics")
     public boolean METRICS = true;
