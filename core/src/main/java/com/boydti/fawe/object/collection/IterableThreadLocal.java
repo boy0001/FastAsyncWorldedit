@@ -1,5 +1,6 @@
 package com.boydti.fawe.object.collection;
 
+import com.boydti.fawe.util.MainUtil;
 import java.lang.ref.Reference;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
@@ -40,17 +41,7 @@ public abstract class IterableThreadLocal<T> extends ThreadLocal<T> implements I
 
     public static void clean(ThreadLocal instance) {
         try {
-            ThreadGroup rootGroup = Thread.currentThread( ).getThreadGroup( );
-            ThreadGroup parentGroup;
-            while ( ( parentGroup = rootGroup.getParent() ) != null ) {
-                rootGroup = parentGroup;
-            }
-            Thread[] threads = new Thread[ rootGroup.activeCount() ];
-            if (threads.length != 0) {
-                while (rootGroup.enumerate(threads, true) == threads.length) {
-                    threads = new Thread[threads.length * 2];
-                }
-            }
+            Thread[] threads = MainUtil.getThreads();
             Field tl = Thread.class.getDeclaredField("threadLocals");
             tl.setAccessible(true);
             Method methodRemove = null;

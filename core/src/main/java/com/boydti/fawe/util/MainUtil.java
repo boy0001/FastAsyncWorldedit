@@ -488,7 +488,7 @@ public class MainUtil {
 
     private static final Class[] parameters = new Class[]{URL.class};
 
-    public static void loadURLClasspath(URL u) throws IOException {
+    public static ClassLoader loadURLClasspath(URL u) throws IOException {
         ClassLoader sysloader = ClassLoader.getSystemClassLoader();
 
         Class sysclass = URLClassLoader.class;
@@ -496,11 +496,27 @@ public class MainUtil {
         try {
             Method method = sysclass.getDeclaredMethod("addURL", parameters);
             method.setAccessible(true);
-            method.invoke(sysloader, new Object[]{u});
-        } catch (Throwable t) {
-            t.printStackTrace();
-            throw new IOException("Error, could not add URL to system classloader");
+            if (sysloader instanceof URLClassLoader) {
+                System.out.println("Sys loader");
+                method.invoke(sysloader, new Object[]{u});
+            } else {
+                System.out.println("Not sys loader");
+                ClassLoader loader = MainUtil.class.getClassLoader();
+                while (!(loader instanceof URLClassLoader) && loader.getParent() != null) {
+                    loader = loader.getParent();
+                }
+                if (loader instanceof URLClassLoader) {
+                    method.invoke(sysloader, new Object[]{u});
+                } else {
+                    loader = new URLClassLoader(new URL[]{u}, MainUtil.class.getClassLoader());
+                    System.out.println("Loaded true");
+                    return loader;
+                }
+            }
+        } catch (Throwable ignore) {
+            ignore.printStackTrace();
         }
+        return sysloader;
     }
 
     public static String getText(String url) throws IOException {
@@ -576,6 +592,21 @@ public class MainUtil {
         } catch (Exception e) {
             MainUtil.handleError(e);
         }
+    }
+
+    public static Thread[] getThreads() {
+        ThreadGroup rootGroup = Thread.currentThread( ).getThreadGroup( );
+        ThreadGroup parentGroup;
+        while ( ( parentGroup = rootGroup.getParent() ) != null ) {
+            rootGroup = parentGroup;
+        }
+        Thread[] threads = new Thread[ rootGroup.activeCount() ];
+        if (threads.length != 0) {
+            while (rootGroup.enumerate(threads, true) == threads.length) {
+                threads = new Thread[threads.length * 2];
+            }
+        }
+        return threads;
     }
 
     public static File copyFile(File sourceFile, File destFile) throws IOException {

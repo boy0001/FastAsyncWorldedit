@@ -62,6 +62,8 @@ public enum BBC {
 
     MASK_DISABLED("Global mask disabled", "WorldEdit.General"),
     MASK("Global mask set", "WorldEdit.General"),
+    TEXTURE_DISABLED("Texturing reset", "WorldEdit.General"),
+    TEXTURE_SET("Set texturing to %s1", "WorldEdit.General"),
     SOURCE_MASK_DISABLED("Global source mask disabled", "WorldEdit.General"),
     SOURCE_MASK("Global source mask set", "WorldEdit.General"),
     TRANSFORM_DISABLED("Global transform disabled", "WorldEdit.General"),

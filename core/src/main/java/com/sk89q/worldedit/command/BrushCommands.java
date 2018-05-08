@@ -391,6 +391,36 @@ public class BrushCommands extends MethodCommands {
                 .setFill(fill);
     }
 
+    @Command(
+            aliases = {"stencil", "color"},
+            usage = "<pattern> [radius=5] [file|#clipboard|imgur=null] [rotation=360] [yscale=1.0]",
+            desc = "Use a height map to paint a surface",
+            help =
+                    "Use a height map to paint any surface.\n" +
+                            "The -w flag will only apply at maximum saturation\n" +
+                            "The -r flag will apply random rotation",
+            min = 1,
+            max = -1
+    )
+    @CommandPermissions("worldedit.brush.stencil")
+    public BrushSettings stencilBrush(Player player, EditSession editSession, LocalSession session, Pattern fill, @Optional("5") double radius, @Optional("") final String image, @Optional("0") @Step(90) @Range(min=0, max=360) final int rotation, @Optional("1") final double yscale, @Switch('w') boolean onlyWhite, @Switch('r') boolean randomRotate, CommandContext context) throws WorldEditException {
+        worldEdit.checkMaxBrushRadius(radius);
+        InputStream stream = getHeightmapStream(image);
+        HeightBrush brush;
+        try {
+            brush = new StencilBrush(stream, rotation, yscale, onlyWhite, image.equalsIgnoreCase("#clipboard") ? session.getClipboard().getClipboard() : null);
+        } catch (EmptyClipboardException ignore) {
+            brush = new StencilBrush(stream, rotation, yscale, onlyWhite, null);
+        }
+        if (randomRotate) {
+            brush.setRandomRotate(true);
+        }
+        return set(session, context,
+                brush)
+                .setSize(radius)
+                .setFill(fill);
+    }
+
 //    @Command(
 //            aliases = {"image", "img"}
 //            // TODO directional image coloring

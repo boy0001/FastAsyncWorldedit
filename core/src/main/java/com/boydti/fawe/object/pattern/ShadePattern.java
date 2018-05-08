@@ -13,17 +13,13 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 public class ShadePattern extends AbstractPattern {
     private transient TextureUtil util;
-    private final boolean randomize;
-    private final int complexity;
     private final Extent extent;
     private final boolean darken;
 
-    public ShadePattern(Extent extent, boolean darken, int complexity, boolean randomize) {
+    public ShadePattern(Extent extent, boolean darken, TextureUtil util) {
         checkNotNull(extent);
         this.extent = extent;
-        this.complexity = complexity;
-        this.randomize = randomize;
-        this.util = Fawe.get().getCachedTextureUtil(randomize, 0, complexity);
+        this.util = util;
         this.darken = darken;
     }
 
@@ -35,6 +31,6 @@ public class ShadePattern extends AbstractPattern {
 
     private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
         stream.defaultReadObject();
-        util = Fawe.get().getCachedTextureUtil(randomize, 0, complexity);
+        util = Fawe.get().getCachedTextureUtil(true, 0, 100);
     }
 }

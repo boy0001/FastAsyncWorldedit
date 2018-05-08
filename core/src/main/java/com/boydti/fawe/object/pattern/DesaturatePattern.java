@@ -1,6 +1,7 @@
 package com.boydti.fawe.object.pattern;
 
 import com.boydti.fawe.Fawe;
+import com.boydti.fawe.util.TextureHolder;
 import com.boydti.fawe.util.TextureUtil;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
@@ -10,23 +11,20 @@ import com.sk89q.worldedit.function.pattern.AbstractPattern;
 import java.io.IOException;
 
 public class DesaturatePattern extends AbstractPattern {
-    private transient TextureUtil util;
-    private final boolean randomize;
-    private final int complexity;
+    private transient TextureHolder holder;
     private final Extent extent;
     private final double value;
 
-    public DesaturatePattern(Extent extent, double value, int complexity, boolean randomize) {
+    public DesaturatePattern(Extent extent, double value, TextureHolder util) {
         this.extent = extent;
-        this.complexity = complexity;
-        this.randomize = randomize;
-        this.util = Fawe.get().getCachedTextureUtil(randomize, 0, complexity);
+        this.holder = util;
         this.value = Math.max(0, Math.min(1, value));
     }
 
     @Override
     public BaseBlock apply(Vector position) {
         BaseBlock block = extent.getBlock(position);
+        TextureUtil util = holder.getTextureUtil();
         int color = util.getColor(block);
         int r = (color >> 16) & 0xFF;
         int g = (color >> 8) & 0xFF;
@@ -43,6 +41,7 @@ public class DesaturatePattern extends AbstractPattern {
     @Override
     public boolean apply(Extent extent, Vector setPosition, Vector getPosition) throws WorldEditException {
         BaseBlock block = extent.getBlock(getPosition);
+        TextureUtil util = holder.getTextureUtil();
         int color = util.getColor(block);
         int r = (color >> 16) & 0xFF;
         int g = (color >> 8) & 0xFF;
@@ -65,6 +64,6 @@ public class DesaturatePattern extends AbstractPattern {
 
     private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
         stream.defaultReadObject();
-        util = Fawe.get().getCachedTextureUtil(randomize, 0, complexity);
+        holder = Fawe.get().getCachedTextureUtil(true, 0, 100);
     }
 }

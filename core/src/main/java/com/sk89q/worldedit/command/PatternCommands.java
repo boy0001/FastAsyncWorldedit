@@ -1,38 +1,10 @@
 package com.sk89q.worldedit.command;
 
-import com.boydti.fawe.Fawe;
 import com.boydti.fawe.object.DataAnglePattern;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.clipboard.MultiClipboardHolder;
 import com.boydti.fawe.object.collection.RandomCollection;
-import com.boydti.fawe.object.pattern.AngleColorPattern;
-import com.boydti.fawe.object.pattern.AverageColorPattern;
-import com.boydti.fawe.object.pattern.BiomePattern;
-import com.boydti.fawe.object.pattern.BufferedPattern;
-import com.boydti.fawe.object.pattern.BufferedPattern2D;
-import com.boydti.fawe.object.pattern.DataPattern;
-import com.boydti.fawe.object.pattern.DesaturatePattern;
-import com.boydti.fawe.object.pattern.ExistingPattern;
-import com.boydti.fawe.object.pattern.ExpressionPattern;
-import com.boydti.fawe.object.pattern.FullClipboardPattern;
-import com.boydti.fawe.object.pattern.IdDataMaskPattern;
-import com.boydti.fawe.object.pattern.IdPattern;
-import com.boydti.fawe.object.pattern.Linear2DBlockPattern;
-import com.boydti.fawe.object.pattern.Linear3DBlockPattern;
-import com.boydti.fawe.object.pattern.LinearBlockPattern;
-import com.boydti.fawe.object.pattern.MaskedPattern;
-import com.boydti.fawe.object.pattern.NoXPattern;
-import com.boydti.fawe.object.pattern.NoYPattern;
-import com.boydti.fawe.object.pattern.NoZPattern;
-import com.boydti.fawe.object.pattern.OffsetPattern;
-import com.boydti.fawe.object.pattern.PatternExtent;
-import com.boydti.fawe.object.pattern.RandomFullClipboardPattern;
-import com.boydti.fawe.object.pattern.RandomOffsetPattern;
-import com.boydti.fawe.object.pattern.RelativePattern;
-import com.boydti.fawe.object.pattern.SaturatePattern;
-import com.boydti.fawe.object.pattern.ShadePattern;
-import com.boydti.fawe.object.pattern.SolidRandomOffsetPattern;
-import com.boydti.fawe.object.pattern.SurfaceRandomOffsetPattern;
+import com.boydti.fawe.object.pattern.*;
 import com.boydti.fawe.object.random.SimplexRandom;
 import com.boydti.fawe.util.ColorUtil;
 import com.boydti.fawe.util.TextureUtil;
@@ -116,9 +88,9 @@ public class PatternCommands extends MethodCommands {
             min = 1,
             max = 1
     )
-    public Pattern color(String arg) {
+    public Pattern color(TextureUtil textureUtil, String arg) {
         Color color = ColorUtil.parseColor(arg);
-        return Fawe.get().getTextureUtil().getNearestBlock(color.getRGB());
+        return textureUtil.getNearestBlock(color.getRGB());
     }
 
     @Command(
@@ -128,9 +100,8 @@ public class PatternCommands extends MethodCommands {
             min = 0,
             max = 3
     )
-    public Pattern anglecolor(Extent extent, @Optional("true") boolean randomize, @Optional("100") double maxComplexity, @Optional("1") int distance) {
-        TextureUtil util = Fawe.get().getCachedTextureUtil(randomize, 0, (int) maxComplexity);
-        return new AngleColorPattern(extent, (int) maxComplexity, randomize, distance);
+    public Pattern anglecolor(Extent extent, LocalSession session, @Optional("true") boolean randomize, @Optional("100") double maxComplexity, @Optional("1") int distance) {
+        return new AngleColorPattern(extent, session, distance);
     }
 
     @Command(
@@ -145,27 +116,25 @@ public class PatternCommands extends MethodCommands {
     @Command(
             aliases = {"#saturate"},
             desc = "Saturate the existing block with a color",
-            usage = "<color> [randomize=true] [max-complexity=100]",
+            usage = "<color>",
             min = 1,
             max = 3
     )
-    public Pattern saturate(Extent extent, String arg, @Optional("true") boolean randomize, @Optional("100") double maxComplexity) {
-        TextureUtil util = Fawe.get().getCachedTextureUtil(randomize, 0, (int) maxComplexity);
+    public Pattern saturate(Extent extent, LocalSession session, String arg) {
         Color color = ColorUtil.parseColor(arg);
-        return new SaturatePattern(extent, color.getRGB(), (int) maxComplexity, randomize);
+        return new SaturatePattern(extent, color.getRGB(), session);
     }
 
     @Command(
             aliases = {"#averagecolor"},
             desc = "Average between the existing block and a color",
-            usage = "<color> [randomize=true] [max-complexity=100]",
+            usage = "<color>",
             min = 1,
             max = 3
     )
-    public Pattern averagecolor(Extent extent, String arg, @Optional("true") boolean randomize, @Optional("100") double maxComplexity) {
-        TextureUtil util = Fawe.get().getCachedTextureUtil(randomize, 0, (int) maxComplexity);
+    public Pattern averagecolor(Extent extent, LocalSession session, String arg) {
         Color color = ColorUtil.parseColor(arg);
-        return new AverageColorPattern(extent, color.getRGB(), (int) maxComplexity, randomize);
+        return new AverageColorPattern(extent, color.getRGB(), session);
     }
 
     @Command(
@@ -175,33 +144,28 @@ public class PatternCommands extends MethodCommands {
             min = 0,
             max = 3
     )
-    public Pattern desaturate(Extent extent, @Optional("100") double percent, @Optional("true") boolean randomize, @Optional("100") double maxComplexity) {
-        TextureUtil util = Fawe.get().getCachedTextureUtil(randomize, 0, (int) maxComplexity);
-        return new DesaturatePattern(extent, percent / 100d, (int) maxComplexity, randomize);
+    public Pattern desaturate(Extent extent, LocalSession session, @Optional("100") double percent) {
+        return new DesaturatePattern(extent, percent / 100d, session);
     }
 
     @Command(
             aliases = {"#lighten"},
             desc = "Lighten the existing block",
-            usage = "[randomize=true] [max-complexity=100]",
             min = 0,
             max = 2
     )
-    public Pattern lighten(Extent extent, @Optional("true") boolean randomize, @Optional("100") double maxComplexity) {
-        TextureUtil util = Fawe.get().getCachedTextureUtil(randomize, 0, (int) maxComplexity);
-        return new ShadePattern(extent, false, (int) maxComplexity, randomize);
+    public Pattern lighten(Extent extent, TextureUtil util) {
+        return new ShadePattern(extent, false, util);
     }
 
     @Command(
             aliases = {"#darken"},
             desc = "Darken the existing block",
-            usage = "[randomize=true] [max-complexity=100]",
             min = 0,
             max = 2
     )
-    public Pattern darken(Extent extent, @Optional("true") boolean randomize, @Optional("100") double maxComplexity) {
-        TextureUtil util = Fawe.get().getCachedTextureUtil(randomize, 0, (int) maxComplexity);
-        return new ShadePattern(extent, true, (int) maxComplexity, randomize);
+    public Pattern darken(Extent extent, TextureUtil util) {
+        return new ShadePattern(extent, true, util);
     }
 
     @Command(

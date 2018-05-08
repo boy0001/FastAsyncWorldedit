@@ -4,6 +4,7 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.extent.NullExtent;
 import com.boydti.fawe.object.extent.ResettableExtent;
+import com.boydti.fawe.util.TextureUtil;
 import com.boydti.fawe.util.image.ImageUtil;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.LocalSession;
@@ -77,6 +78,18 @@ public class FawePrimitiveBinding extends BindingHelper {
     public BufferedImage getImage(ArgumentStack context, Annotation[] modifiers) throws ParameterException {
         return ImageUtil.getImage(context.next());
     }
+
+    @BindingMatch(
+            type = {TextureUtil.class},
+            behavior = BindingBehavior.PROVIDES
+    )
+    public TextureUtil getTexture(ArgumentStack context) {
+        Actor actor = context.getContext().getLocals().get(Actor.class);
+        if (actor == null) return Fawe.get().getCachedTextureUtil(true, 0, 100);
+        LocalSession session = WorldEdit.getInstance().getSessionManager().get(actor);
+        return session.getTextureUtil();
+    }
+
 
     @BindingMatch(
             type = {Extent.class},

@@ -345,7 +345,7 @@ public class BrushOptionsCommands extends MethodCommands {
             min = 0,
             max = -1
     )
-    @CommandPermissions("worldedit.brush.options.mask")
+    @CommandPermissions({"worldedit.brush.options.mask", "worldedit.mask.brush"})
     public void mask(Player player, LocalSession session, EditSession editSession, @Optional @Switch('h') boolean offHand, CommandContext context) throws WorldEditException {
         BrushTool tool = session.getBrushTool(player, false);
         if (tool == null) {
@@ -378,7 +378,7 @@ public class BrushOptionsCommands extends MethodCommands {
             min = 0,
             max = -1
     )
-    @CommandPermissions("worldedit.brush.options.mask")
+    @CommandPermissions({"worldedit.brush.options.mask", "worldedit.mask.brush"})
     public void smask(Player player, LocalSession session, EditSession editSession, @Optional @Switch('h') boolean offHand, CommandContext context) throws WorldEditException {
         BrushTool tool = session.getBrushTool(player, false);
         if (tool == null) {
@@ -410,7 +410,7 @@ public class BrushOptionsCommands extends MethodCommands {
             min = 0,
             max = -1
     )
-    @CommandPermissions("worldedit.brush.options.transform")
+    @CommandPermissions({"worldedit.brush.options.transform", "worldedit.transform.brush"})
     public void transform(Player player, LocalSession session, EditSession editSession, @Optional @Switch('h') boolean offHand, CommandContext context) throws WorldEditException {
         BrushTool tool = session.getBrushTool(player, false);
         if (tool == null) {

@@ -33,9 +33,7 @@ import com.boydti.fawe.object.changeset.FaweChangeSet;
 import com.boydti.fawe.object.clipboard.MultiClipboardHolder;
 import com.boydti.fawe.object.collection.SparseBitSet;
 import com.boydti.fawe.object.extent.ResettableExtent;
-import com.boydti.fawe.util.EditSessionBuilder;
-import com.boydti.fawe.util.MainUtil;
-import com.boydti.fawe.util.StringMan;
+import com.boydti.fawe.util.*;
 import com.boydti.fawe.util.cui.CUI;
 import com.boydti.fawe.wrappers.WorldWrapper;
 import com.sk89q.jchronic.Chronic;
@@ -74,7 +72,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Stores session information.
  */
-public class LocalSession {
+public class LocalSession implements TextureHolder {
 
     @Deprecated
     public transient static int MAX_HISTORY_SIZE = 15;
@@ -117,6 +115,7 @@ public class LocalSession {
     private transient boolean fastMode = false;
     private transient Mask mask;
     private transient Mask sourceMask;
+    private transient TextureUtil texture;
     private transient ResettableExtent transform = null;
     private transient TimeZone timezone = TimeZone.getDefault();
 
@@ -1428,6 +1427,28 @@ public class LocalSession {
     @SuppressWarnings("deprecation")
     public void setSourceMask(com.sk89q.worldedit.masks.Mask mask) {
         setSourceMask(mask != null ? Masks.wrap(mask) : null);
+    }
+
+    public void setTextureUtil(TextureUtil texture) {
+        synchronized (this) {
+            this.texture = texture;
+        }
+    }
+
+    /**
+     * Get the TextureUtil currently being used
+     * @return
+     */
+    @Override
+    public TextureUtil getTextureUtil() {
+        TextureUtil tmp = texture;
+        if (tmp == null) {
+            synchronized (this) {
+                tmp = Fawe.get().getCachedTextureUtil(true, 0, 100);
+                this.texture = tmp;
+            }
+        }
+        return tmp;
     }
 
     public ResettableExtent getTransform() {

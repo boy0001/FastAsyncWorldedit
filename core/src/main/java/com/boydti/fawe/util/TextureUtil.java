@@ -3,12 +3,17 @@ package com.boydti.fawe.util;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.Settings;
+import com.boydti.fawe.object.pattern.PatternExtent;
 import com.boydti.fawe.util.image.ImageUtil;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
+import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.blocks.BlockID;
+import com.sk89q.worldedit.extent.clipboard.Clipboard;
+import com.sk89q.worldedit.function.mask.Mask;
+import com.sk89q.worldedit.function.pattern.BlockPattern;
 import com.sk89q.worldedit.world.registry.BundledBlockData;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -26,7 +31,42 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import javax.imageio.ImageIO;
 
-public class TextureUtil {
+public class TextureUtil implements TextureHolder {
+    public static TextureUtil fromClipboard(Clipboard clipboard) throws FileNotFoundException {
+        boolean[] ids = new boolean[Character.MAX_VALUE + 1];
+        for (Vector pt : clipboard.getRegion()) {
+            ids[clipboard.getBlock(pt).getCombined()] = true;
+        }
+        HashSet<BaseBlock> blocks = new HashSet<>();
+        for (int combined = 0; combined < ids.length; combined++) {
+            if (ids[combined]) blocks.add(FaweCache.CACHE_BLOCK[combined]);
+        }
+        return fromBlocks(blocks);
+    }
+
+    public static TextureUtil fromBlocks(Set<BaseBlock> blocks) throws FileNotFoundException {
+        return new FilteredTextureUtil(Fawe.get().getTextureUtil(), blocks);
+    }
+
+    public static TextureUtil fromMask(Mask mask) throws FileNotFoundException {
+        HashSet<BaseBlock> blocks = new HashSet<>();
+        BlockPattern pattern = new BlockPattern(new BaseBlock(BlockID.AIR));
+        PatternExtent extent = new PatternExtent(pattern);
+        new MaskTraverser(mask).reset(extent);
+        TextureUtil tu = Fawe.get().getTextureUtil();
+        for (int combinedId : tu.getValidBlockIds()) {
+            BaseBlock block = FaweCache.CACHE_BLOCK[combinedId];
+            pattern.setBlock(block);
+            if (mask.test(Vector.ZERO)) blocks.add(block);
+        }
+        return fromBlocks(blocks);
+    }
+
+    @Override
+    public TextureUtil getTextureUtil() {
+        return this;
+    }
+
     private final File folder;
     private static final int[] FACTORS = new int[766];
 
