@@ -8,10 +8,8 @@ import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.command.tool.brush.Brush;
-import com.sk89q.worldedit.function.RegionFunction;
 import com.sk89q.worldedit.function.mask.BlockMask;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.mask.SolidBlockMask;
@@ -43,39 +41,33 @@ public class LayerBrush implements Brush {
         Operations.completeBlindly(visitor);
         BlockVectorSet visited = visitor.getVisited();
         BaseBlock firstPattern = layers[0];
-        visitor = new RecursiveVisitor(new Mask() {
-            @Override
-            public boolean test(Vector pos) {
-                int depth = visitor.getDepth() + 1;
-                if (depth > 1) {
-                    boolean found = false;
-                    int previous = layers[depth - 1].getCombined();
-                    int previous2 = layers[depth - 2].getCombined();
-                    for (Vector dir : BreadthFirstSearch.DEFAULT_DIRECTIONS) {
-                        mutable.setComponents(pos.getBlockX() + dir.getBlockX(), pos.getBlockY() + dir.getBlockY(), pos.getBlockZ() + dir.getBlockZ());
-                        if (visitor.isVisited(mutable) && queue.getCachedCombinedId4Data(mutable.getBlockX(), mutable.getBlockY(), mutable.getBlockZ()) == previous) {
-                            mutable.setComponents(pos.getBlockX() + dir.getBlockX() * 2, pos.getBlockY() + dir.getBlockY() * 2, pos.getBlockZ() + dir.getBlockZ() * 2);
-                            if (visitor.isVisited(mutable) && queue.getCachedCombinedId4Data(mutable.getBlockX(), mutable.getBlockY(), mutable.getBlockZ()) == previous2) {
-                                found = true;
-                                break;
-                            } else {
-                                return false;
-                            }
+        visitor = new RecursiveVisitor((Mask) pos -> {
+            int depth = visitor.getDepth() + 1;
+            if (depth > 1) {
+                boolean found = false;
+                int previous = layers[depth - 1].getCombined();
+                int previous2 = layers[depth - 2].getCombined();
+                for (Vector dir : BreadthFirstSearch.DEFAULT_DIRECTIONS) {
+                    mutable.setComponents(pos.getBlockX() + dir.getBlockX(), pos.getBlockY() + dir.getBlockY(), pos.getBlockZ() + dir.getBlockZ());
+                    if (visitor.isVisited(mutable) && queue.getCachedCombinedId4Data(mutable.getBlockX(), mutable.getBlockY(), mutable.getBlockZ()) == previous) {
+                        mutable.setComponents(pos.getBlockX() + dir.getBlockX() * 2, pos.getBlockY() + dir.getBlockY() * 2, pos.getBlockZ() + dir.getBlockZ() * 2);
+                        if (visitor.isVisited(mutable) && queue.getCachedCombinedId4Data(mutable.getBlockX(), mutable.getBlockY(), mutable.getBlockZ()) == previous2) {
+                            found = true;
+                            break;
+                        } else {
+                            return false;
                         }
                     }
-                    if (!found) {
-                        return false;
-                    }
                 }
-                return !adjacent.test(pos);
+                if (!found) {
+                    return false;
+                }
             }
-        }, new RegionFunction() {
-            @Override
-            public boolean apply(Vector pos) throws WorldEditException {
-                int depth = visitor.getDepth();
-                BaseBlock currentPattern = layers[depth];
-                return editSession.setBlockFast(pos, currentPattern);
-            }
+            return !adjacent.test(pos);
+        }, pos -> {
+            int depth = visitor.getDepth();
+            BaseBlock currentPattern = layers[depth];
+            return editSession.setBlockFast(pos, currentPattern);
         }, layers.length - 1, editSession);
         for (Vector pos : visited) {
             visitor.visit(pos);

@@ -5,18 +5,18 @@ import com.boydti.fawe.object.brush.heightmap.HeightMap;
 import com.boydti.fawe.object.mask.AdjacentAnyMask;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.MaxChangedBlocksException;
+import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.WorldEditException;
+import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
-import com.sk89q.worldedit.function.RegionFunction;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.mask.Masks;
-import com.sk89q.worldedit.function.mask.RegionMask;
 import com.sk89q.worldedit.function.mask.SolidBlockMask;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.function.visitor.RecursiveVisitor;
-import com.sk89q.worldedit.regions.CuboidRegion;
+import com.sk89q.worldedit.math.transform.AffineTransform;
+import com.sk89q.worldedit.util.Location;
 import java.io.InputStream;
 import java.util.Arrays;
 
@@ -34,6 +34,7 @@ public class StencilBrush extends HeightBrush {
         final int cy = position.getBlockY();
         final int cz = position.getBlockZ();
         int size = (int) sizeDouble;
+        int size2 = (int) (sizeDouble * sizeDouble);
         int maxY = editSession.getMaxY();
         int add;
         if (yscale < 0) {
@@ -47,42 +48,48 @@ public class StencilBrush extends HeightBrush {
         int cutoff = onlyWhite ? maxY : 0;
         final SolidBlockMask solid = new SolidBlockMask(editSession);
         final AdjacentAnyMask adjacent = new AdjacentAnyMask(Masks.negate(solid));
-        RegionMask region = new RegionMask(new CuboidRegion(editSession.getWorld(), position.subtract(size, size, size), position.add(size, size, size)));
+
+
+        Player player = editSession.getPlayer().getPlayer();
+        Vector pos = player.getPosition();
+
+
+
+        Location loc = editSession.getPlayer().getPlayer().getLocation();
+        float yaw = loc.getYaw();
+        float pitch = loc.getPitch();
+        AffineTransform transform = new AffineTransform().rotateY((-yaw) % 360).rotateX(pitch - 90).inverse();
+
+
         RecursiveVisitor visitor = new RecursiveVisitor(new Mask() {
+            private final MutableBlockVector mutable = new MutableBlockVector();
             @Override
             public boolean test(Vector vector) {
-                if (solid.test(vector) && region.test(vector)) {
+                if (solid.test(vector)) {
                     int dx = vector.getBlockX() - cx;
                     int dy = vector.getBlockY() - cy;
                     int dz = vector.getBlockZ() - cz;
-                    Vector dir = adjacent.direction(vector);
-                    if (dir != null) {
-                        if (dy != 0) {
-                            if (dir.getBlockX() != 0) {
-                                dx += dir.getBlockX() * dy;
-                            } else if (dir.getBlockZ() != 0) {
-                                dz += dir.getBlockZ() * dy;
-                            }
-                        }
-                        double raise = map.getHeight(dx, dz);
-                        int val = (int) Math.ceil(raise * scale) + add;
-                        if (val < cutoff) {
-                            return true;
-                        }
-                        if (val >= 255 || PseudoRandom.random.random(maxY) < val) {
-                            editSession.setBlock(vector.getBlockX(), vector.getBlockY(), vector.getBlockZ(), pattern);
-                        }
+
+                    Vector srcPos = transform.apply(mutable.setComponents(dx, dy, dz));
+                    dx = srcPos.getBlockX();
+                    dz = srcPos.getBlockZ();
+
+                    int distance = dx * dx + dz * dz;
+                    if (distance > size2 || Math.abs(dx) > 256 || Math.abs(dz) > 256) return false;
+
+                    double raise = map.getHeight(dx, dz);
+                    int val = (int) Math.ceil(raise * scale) + add;
+                    if (val < cutoff) {
                         return true;
                     }
+                    if (val >= 255 || PseudoRandom.random.random(maxY) < val) {
+                        editSession.setBlock(vector.getBlockX(), vector.getBlockY(), vector.getBlockZ(), pattern);
+                    }
+                    return true;
                 }
                 return false;
             }
-        }, new RegionFunction() {
-            @Override
-            public boolean apply(Vector vector) throws WorldEditException {
-                return true;
-            }
-        }, Integer.MAX_VALUE, editSession);
+        }, vector -> true, Integer.MAX_VALUE, editSession);
         visitor.setDirections(Arrays.asList(visitor.DIAGONAL_DIRECTIONS));
         visitor.visit(position);
         Operations.completeBlindly(visitor);

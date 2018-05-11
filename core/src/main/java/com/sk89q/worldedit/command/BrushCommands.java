@@ -32,6 +32,7 @@ import com.boydti.fawe.object.clipboard.MultiClipboardHolder;
 import com.boydti.fawe.object.mask.IdMask;
 import com.boydti.fawe.util.ColorUtil;
 import com.boydti.fawe.util.MathMan;
+import com.boydti.fawe.util.image.ImageUtil;
 import com.sk89q.minecraft.util.commands.*;
 import com.sk89q.worldedit.*;
 import com.sk89q.worldedit.blocks.BaseBlock;
@@ -55,6 +56,7 @@ import com.sk89q.worldedit.util.command.binding.Range;
 import com.sk89q.worldedit.util.command.binding.Switch;
 import com.sk89q.worldedit.util.command.parametric.Optional;
 import java.awt.Color;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.URL;
 import java.nio.channels.Channels;
@@ -362,7 +364,7 @@ public class BrushCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = {"stencil", "color"},
+            aliases = {"stencil"},
             usage = "<pattern> [radius=5] [file|#clipboard|imgur=null] [rotation=360] [yscale=1.0]",
             desc = "Use a height map to paint a surface",
             help =
@@ -392,43 +394,33 @@ public class BrushCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = {"stencil", "color"},
-            usage = "<pattern> [radius=5] [file|#clipboard|imgur=null] [rotation=360] [yscale=1.0]",
+            aliases = {"image", "color"},
+            usage = "<radius> <image> [yscale=1]",
             desc = "Use a height map to paint a surface",
+            flags = "a",
             help =
                     "Use a height map to paint any surface.\n" +
-                            "The -w flag will only apply at maximum saturation\n" +
-                            "The -r flag will apply random rotation",
+                            "The -a flag will use image alpha\n" +
+                            "The -f blends the image with the existing terrain",
             min = 1,
             max = -1
     )
     @CommandPermissions("worldedit.brush.stencil")
-    public BrushSettings stencilBrush(Player player, EditSession editSession, LocalSession session, Pattern fill, @Optional("5") double radius, @Optional("") final String image, @Optional("0") @Step(90) @Range(min=0, max=360) final int rotation, @Optional("1") final double yscale, @Switch('w') boolean onlyWhite, @Switch('r') boolean randomRotate, CommandContext context) throws WorldEditException {
+    public BrushSettings imageBrush(Player player, EditSession editSession, LocalSession session, @Optional("5") double radius, BufferedImage image, @Optional("1") @Range(min=Double.MIN_NORMAL) final double yscale, @Switch('a') boolean alpha, @Switch('f') boolean fadeOut, CommandContext context) throws WorldEditException, IOException {
         worldEdit.checkMaxBrushRadius(radius);
-        InputStream stream = getHeightmapStream(image);
-        HeightBrush brush;
-        try {
-            brush = new StencilBrush(stream, rotation, yscale, onlyWhite, image.equalsIgnoreCase("#clipboard") ? session.getClipboard().getClipboard() : null);
-        } catch (EmptyClipboardException ignore) {
-            brush = new StencilBrush(stream, rotation, yscale, onlyWhite, null);
+        if (yscale != 1) {
+            ImageUtil.scaleAlpha(image, yscale);
+            alpha = true;
         }
-        if (randomRotate) {
-            brush.setRandomRotate(true);
+        if (fadeOut) {
+            ImageUtil.fadeAlpha(image);
+            alpha = true;
         }
+        ImageBrush brush = new ImageBrush(image, session, alpha);
         return set(session, context,
                 brush)
-                .setSize(radius)
-                .setFill(fill);
+                .setSize(radius);
     }
-
-//    @Command(
-//            aliases = {"image", "img"}
-//            // TODO directional image coloring
-//    )
-//    @CommandPermissions("worldedit.brush.stencil")
-//    public BrushSettings imageBrush(Player player, EditSession editSession, LocalSession session, Pattern fill, @Optional("5") double radius, @Optional("") final String image, @Optional("0") @Step(90) @Range(min=0, max=360) final int rotation, @Optional("1") final double yscale, @Switch('w') boolean onlyWhite, @Switch('r') boolean randomRotate, CommandContext context) throws WorldEditException {
-//
-//    }
 
     @Command(
             aliases = {"surface", "surf"},

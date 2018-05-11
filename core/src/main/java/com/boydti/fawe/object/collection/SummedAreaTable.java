@@ -44,7 +44,6 @@ public class SummedAreaTable {
     }
 
     public int average(int x, int z, int index) {
-        long centerHeight = source[index];
         int minX = Math.max(0, x - radius) - x;
         int minZ = Math.max(0, z - radius) - z;
         int maxX = Math.min(width - 1, x + radius) - x;

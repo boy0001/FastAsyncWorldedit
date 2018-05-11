@@ -2,11 +2,13 @@ package com.boydti.fawe.util.image;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.util.MainUtil;
+import com.boydti.fawe.util.MathMan;
 import com.sk89q.worldedit.util.command.parametric.ParameterException;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.Transparency;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -66,6 +68,66 @@ public class ImageUtil {
         } while (w != targetWidth || h != targetHeight);
 
         return ret;
+    }
+
+    public static void fadeAlpha(BufferedImage image) {
+        int[] raw = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
+
+        int width = image.getWidth();
+        int height = image.getHeight();
+        int centerX = width / 2;
+        int centerZ = height / 2;
+
+        float invRadiusX = 1f / centerX;
+        float invRadiusZ = 1f / centerZ;
+
+        float[] sqrX = new float[width];
+        float[] sqrZ = new float[height];
+        for (int x = 0; x < width; x++) {
+            float distance = Math.abs(x - centerX) * invRadiusX;
+            sqrX[x] = distance * distance;
+        }
+        for (int z = 0; z < height; z++) {
+            float distance = Math.abs(z - centerZ) * invRadiusZ;
+            sqrZ[z] = distance * distance;
+        }
+
+        for (int z = 0, index = 0; z < height; z++) {
+            float dz2 = sqrZ[z];
+            for (int x = 0; x < width; x++, index++) {
+                int color = raw[index];
+                int alpha = (color >> 24) & 0xFF;
+                if (alpha != 0) {
+                    float dx2 = sqrX[x];
+                    float distSqr = dz2 + dx2;
+                    if (distSqr > 1) raw[index] = 0;
+                    else {
+                        alpha = (int) (alpha * (1 - distSqr));
+                        raw[index] = (color & 0x00FFFFFF) + (alpha << 24);
+                    }
+                }
+            }
+        }
+    }
+
+    public static void scaleAlpha(BufferedImage image, double alphaScale) {
+        int[] raw = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
+        int defined = (MathMan.clamp((int) (255 * alphaScale), 0, 255)) << 24;
+        for (int i = 0; i < raw.length; i++) {
+            int color = raw[i];
+            int alpha = ((color >> 24) & 0xFF);
+            switch (alpha) {
+                case 0:
+                    continue;
+                case 255:
+                    raw[i] = (color & 0x00FFFFFF) + defined;
+                    continue;
+                default:
+                    alpha = MathMan.clamp((int) (alpha * alphaScale), 0, 255);
+                    raw[i] = (color & 0x00FFFFFF) + (alpha << 24);
+                    continue;
+            }
+        }
     }
 
     public static int getColor(BufferedImage image) {

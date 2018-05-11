@@ -838,7 +838,7 @@ public class TextureUtil implements TextureHolder {
     /**
      * Assumes the top layer is a transparent color and the bottom is opaque
      */
-    protected int combineTransparency(int top, int bottom) {
+    public int combineTransparency(int top, int bottom) {
         int alpha1 = (top >> 24) & 0xFF;
         int alpha2 = 255 - alpha1;
         int red1 = (top >> 16) & 0xFF;

@@ -1,96 +1,129 @@
 package com.boydti.fawe.object.brush;
 
-import com.boydti.fawe.object.PseudoRandom;
-import com.boydti.fawe.object.brush.heightmap.HeightMap;
-import com.boydti.fawe.object.mask.AdjacentAnyMask;
+import com.boydti.fawe.object.collection.SummedColorTable;
+import com.boydti.fawe.util.TextureUtil;
 import com.sk89q.worldedit.EditSession;
+import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.WorldEditException;
-import com.sk89q.worldedit.entity.Player;
-import com.sk89q.worldedit.extent.clipboard.Clipboard;
-import com.sk89q.worldedit.function.RegionFunction;
+import com.sk89q.worldedit.blocks.BaseBlock;
+import com.sk89q.worldedit.command.tool.brush.Brush;
+import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.function.mask.Mask;
-import com.sk89q.worldedit.function.mask.Masks;
-import com.sk89q.worldedit.function.mask.RegionMask;
 import com.sk89q.worldedit.function.mask.SolidBlockMask;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.function.visitor.RecursiveVisitor;
-import com.sk89q.worldedit.regions.CuboidRegion;
-import java.io.InputStream;
+import com.sk89q.worldedit.math.transform.AffineTransform;
+import com.sk89q.worldedit.util.Location;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.Arrays;
 
-public class ImageBrush extends HeightBrush {
-    private final boolean onlyWhite;
-    private final Player player;
+public class ImageBrush implements Brush {
+    private final LocalSession session;
+    private final SummedColorTable table;
+    private final int width, height;
+    private final double centerX, centerZ;
 
-    public ImageBrush(Player player, InputStream stream, int rotation, double yscale, boolean onlyWhite, Clipboard clipboard) {
-        super(stream, rotation, yscale, false, true, clipboard);
-        this.onlyWhite = onlyWhite;
-        this.player = player;
+    private final ColorFunction colorFunction;
+
+    public ImageBrush(BufferedImage image, LocalSession session, boolean alpha /*, boolean glass */) throws IOException {
+        this.session = session;
+        this.table = new SummedColorTable(image, alpha);
+        this.width = image.getWidth();
+        this.height = image.getHeight();
+        this.centerX = width / 2d;
+        this.centerZ = height / 2d;
+
+        if (alpha) {
+            colorFunction = (x1, z1, x2, z2, extent, pos) -> {
+                int color = table.averageRGBA(x1, z1, x2, z2);
+                int alpha1 = (color >> 24) & 0xFF;
+                switch (alpha1) {
+                    case 0:
+                        return 0;
+                    case 255:
+                        return color;
+                    default:
+                        BaseBlock block = extent.getBlock(pos);
+                        TextureUtil tu = session.getTextureUtil();
+                        int existingColor = tu.getColor(block);
+                        return tu.combineTransparency(color, existingColor);
+
+                }
+            };
+        } else {
+            colorFunction = (x1, z1, x2, z2, extent, pos) -> table.averageRGB(x1, z1, x2, z2);
+        }
+    }
+
+    private interface ColorFunction {
+        int call(int x1, int z1, int x2, int z2, Extent extent, Vector pos);
+    }
+
+    private interface BlockFunction {
+        void apply(int color, Extent extent, Vector pos);
     }
 
     @Override
     public void build(EditSession editSession, Vector position, Pattern pattern, double sizeDouble) throws MaxChangedBlocksException {
+        TextureUtil texture = session.getTextureUtil();
+
         final int cx = position.getBlockX();
         final int cy = position.getBlockY();
         final int cz = position.getBlockZ();
-        int size = (int) sizeDouble;
-        int maxY = editSession.getMaxY();
-        int add;
-        if (yscale < 0) {
-            add = maxY;
-        } else {
-            add = 0;
-        }
-        double scale = (yscale / sizeDouble) * (maxY + 1);
-        final HeightMap map = getHeightMap();
-        map.setSize(size);
-        int cutoff = onlyWhite ? maxY : 0;
         final SolidBlockMask solid = new SolidBlockMask(editSession);
-        final AdjacentAnyMask adjacent = new AdjacentAnyMask(Masks.negate(solid));
-        RegionMask region = new RegionMask(new CuboidRegion(editSession.getWorld(), position.subtract(size, size, size), position.add(size, size, size)));
 
+        double scale = Math.max(width, height) / sizeDouble;
 
+        Location loc = editSession.getPlayer().getPlayer().getLocation();
+        float yaw = loc.getYaw();
+        float pitch = loc.getPitch();
+        AffineTransform transform = new AffineTransform().rotateY((-yaw) % 360).rotateX(pitch - 90).inverse();
 
         RecursiveVisitor visitor = new RecursiveVisitor(new Mask() {
+            private final Vector mutable = new Vector();
             @Override
             public boolean test(Vector vector) {
-                if (solid.test(vector) && region.test(vector)) {
+                if (solid.test(vector)) {
                     int dx = vector.getBlockX() - cx;
                     int dy = vector.getBlockY() - cy;
                     int dz = vector.getBlockZ() - cz;
 
+                    Vector pos1 = transform.apply(mutable.setComponents(dx - 0.5, dy - 0.5, dz - 0.5));
+                    int x1 = (int) (pos1.getX() * scale + centerX);
+                    int z1 = (int) (pos1.getZ() * scale + centerZ);
 
-
-                    if (dir != null) {
-                        if (dy != 0) {
-                            if (dir.getBlockX() != 0) {
-                                dx += dir.getBlockX() * dy;
-                            } else if (dir.getBlockZ() != 0) {
-                                dz += dir.getBlockZ() * dy;
-                            }
-                        }
-                        double raise = map.getHeight(dx, dz);
-                        int val = (int) Math.ceil(raise * scale) + add;
-                        if (val < cutoff) {
-                            return true;
-                        }
-                        if (val >= 255 || PseudoRandom.random.random(maxY) < val) {
-                            editSession.setBlock(vector.getBlockX(), vector.getBlockY(), vector.getBlockZ(), pattern);
-                        }
-                        return true;
+                    Vector pos2 = transform.apply(mutable.setComponents(dx + 0.5, dy + 0.5, dz + 0.5));
+                    int x2 = (int) (pos2.getX() * scale + centerX);
+                    int z2 = (int) (pos2.getZ() * scale + centerZ);
+                    if (x2 < x1) {
+                        int tmp = x1;
+                        x1 = x2;
+                        x2 = tmp;
                     }
+                    if (z2 < z1) {
+                        int tmp = z1;
+                        z1 = z2;
+                        z2 = tmp;
+                    }
+
+                    if (x1 >= width || x2 < 0 || z1 >= height || z2 < 0) return false;
+
+
+                    int color = colorFunction.call(x1, z1, x2, z2, editSession, vector);
+                    if (color != 0) {
+                        BaseBlock block = texture.getNearestBlock(color);
+                        if (block != null) {
+                            editSession.setBlock(vector.getBlockX(), vector.getBlockY(), vector.getBlockZ(), block);
+                        }
+                    }
+                    return true;
                 }
                 return false;
             }
-        }, new RegionFunction() {
-            @Override
-            public boolean apply(Vector vector) throws WorldEditException {
-                return true;
-            }
-        }, Integer.MAX_VALUE, editSession);
+        }, vector -> true, Integer.MAX_VALUE, editSession);
         visitor.setDirections(Arrays.asList(visitor.DIAGONAL_DIRECTIONS));
         visitor.visit(position);
         Operations.completeBlindly(visitor);
