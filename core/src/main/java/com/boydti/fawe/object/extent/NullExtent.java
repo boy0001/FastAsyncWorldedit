@@ -124,6 +124,21 @@ public class NullExtent extends FaweRegionExtent {
     }
 
     @Override
+    public int getNearestSurfaceLayer(int x, int z, int y, int minY, int maxY) {
+        throw new FaweException(reason);
+    }
+
+    @Override
+    public int getNearestSurfaceTerrainBlock(int x, int z, int y, int minY, int maxY) {
+        throw new FaweException(reason);
+    }
+
+    @Override
+    public int getNearestSurfaceTerrainBlock(int x, int z, int y, int minY, int maxY, int failedMin, int failedMax) {
+        throw new FaweException(reason);
+    }
+
+    @Override
     public Extent getExtent() {
         return this;
     }

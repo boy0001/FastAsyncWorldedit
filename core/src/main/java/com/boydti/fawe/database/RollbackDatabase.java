@@ -6,6 +6,7 @@ import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.logging.rollback.RollbackOptimizedHistory;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.changeset.DiskStorageHistory;
+import com.boydti.fawe.object.task.SingleThreadNotifyQueue;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.Vector;
@@ -22,7 +23,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 
-public class RollbackDatabase {
+public class RollbackDatabase extends SingleThreadNotifyQueue {
 
     private final String prefix;
     private final File dbLocation;
@@ -40,7 +41,7 @@ public class RollbackDatabase {
     private String PURGE;
 
     private ConcurrentLinkedQueue<RollbackOptimizedHistory> historyChanges = new ConcurrentLinkedQueue<>();
-    private ConcurrentLinkedQueue<Runnable> notify = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<Runnable> tasks = new ConcurrentLinkedQueue<>();
 
     public RollbackDatabase(String world) throws SQLException, ClassNotFoundException {
         this(FaweAPI.getWorld(world));
@@ -62,28 +63,24 @@ public class RollbackDatabase {
         DELETE_EDIT_USER = "DELETE FROM `" + prefix + "edits` WHERE `player`=? AND `id`=?";
         init();
         purge((int) TimeUnit.DAYS.toMillis(Settings.IMP.HISTORY.DELETE_AFTER_DAYS));
-        TaskManager.IMP.async(new Runnable() {
-            @Override
-            public void run() {
-                long last = System.currentTimeMillis();
-                while (true) {
-                    if (connection == null) {
-                        break;
-                    }
-                    if (!RollbackDatabase.this.sendBatch()) {
-                        try {
-                            while (!notify.isEmpty()) {
-                                Runnable runnable = notify.poll();
-                                runnable.run();
-                            }
-                            Thread.sleep(50);
-                        } catch (final InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
+    }
+
+
+    @Override
+    public boolean hasQueued() {
+        return connection != null && (!historyChanges.isEmpty() || !tasks.isEmpty());
+    }
+
+    @Override
+    public void operate() {
+        synchronized (this) {
+            if (connection == null) {
+                return;
             }
-        });
+            while (sendBatch()) {
+                // Still processing
+            }
+        }
     }
 
     public void init() {
@@ -92,10 +89,6 @@ public class RollbackDatabase {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-    }
-
-    public void addFinishTask(Runnable run) {
-        notify.add(run);
     }
 
     public void delete(final UUID uuid, final int id) {
@@ -186,16 +179,14 @@ public class RollbackDatabase {
     }
 
     public void logEdit(RollbackOptimizedHistory history) {
-        historyChanges.add(history);
+        queue(() -> historyChanges.add(history));
     }
-
-    private final ConcurrentLinkedQueue<Runnable> tasks = new ConcurrentLinkedQueue<>();
 
     public void addTask(Runnable run) {
-        this.tasks.add(run);
+        queue(() -> tasks.add(run));
     }
 
-    public void runTasks() {
+    private void runTasks() {
         Runnable task;
         while ((task = tasks.poll()) != null) {
             try {
@@ -321,9 +312,14 @@ public class RollbackDatabase {
         if (connection == null) {
             return false;
         }
-        connection.close();
-        connection = null;
-        return true;
+        synchronized (this) {
+            if (connection == null) {
+                return false;
+            }
+            connection.close();
+            connection = null;
+            return true;
+        }
     }
 
     /**

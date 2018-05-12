@@ -262,7 +262,7 @@ public class Fawe {
         TaskManager.IMP.later(() -> {
             try {
                 transformParser = new DefaultTransformParser(getWorldEdit());
-                visualQueue = new VisualQueue();
+                visualQueue = new VisualQueue(3);
                 WEManager.IMP.managers.addAll(Fawe.this.IMP.getMaskManagers());
                 WEManager.IMP.managers.add(new PlotSquaredFeature());
                 Fawe.debug("Plugin 'PlotSquared' found. Using it now.");
