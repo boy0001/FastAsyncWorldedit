@@ -43,7 +43,7 @@ public class BukkitChatManager implements ChatManager<FancyMessage> {
 
     @Override
     public void send(Message Message, FawePlayer player) {
-        if (player == FakePlayer.getConsole().toFawePlayer()) {
+        if (!(player instanceof BukkitPlayer)) {
             player.sendMessage(Message.$(this).toOldMessageFormat());
         } else {
             Message.$(this).send(((BukkitPlayer) player).parent);
