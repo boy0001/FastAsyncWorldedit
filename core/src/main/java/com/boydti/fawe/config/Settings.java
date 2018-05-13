@@ -435,9 +435,13 @@ public class Settings extends Config {
         } else {
             limit = new FaweLimit();
         }
-        Collection<String> keys = LIMITS.getSections();
+        ArrayList<String> keys = new ArrayList<>(LIMITS.getSections());
+        if (keys.remove("default")) keys.add("default");
+
+        boolean limitFound = false;
         for (String key : keys) {
-            if (key.equals("default") || (player != null && player.hasPermission("fawe.limit." + key))) {
+            if ((player != null && player.hasPermission("fawe.limit." + key)) || (!limitFound && key.equals("default"))) {
+                limitFound = true;
                 LIMITS newLimit = LIMITS.get(key);
                 limit.MAX_ACTIONS = Math.max(limit.MAX_ACTIONS, newLimit.MAX_ACTIONS != -1 ? newLimit.MAX_ACTIONS : Integer.MAX_VALUE);
                 limit.MAX_CHANGES = Math.max(limit.MAX_CHANGES, newLimit.MAX_CHANGES != -1 ? newLimit.MAX_CHANGES : Integer.MAX_VALUE);
