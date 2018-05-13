@@ -103,6 +103,10 @@ public class Updater {
                         outFile.renameTo(finalFile);
 
                         if (Settings.IMP.UPDATE.equalsIgnoreCase("true")) {
+                            pending = true;
+                            pendingFile = finalFile;
+                            destFile = new File(jarFile.getParent(), "update" + File.separator + jarFile.getName());
+                            
                             installUpdate(null);
                             Fawe.debug("Updated FAWE to " + versionString + " @ " + pendingFile);
                             MainUtil.sendAdmin("&a/restart&7 to update FAWE with these changes: &c/fawe changelog &7or&c " + "https://empcraft.com/fawe/cl?" + Integer.toHexString(currentVersion.hash));
