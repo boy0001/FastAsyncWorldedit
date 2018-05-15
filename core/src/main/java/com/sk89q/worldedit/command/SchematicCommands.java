@@ -277,19 +277,25 @@ public class SchematicCommands extends MethodCommands {
     @Command(aliases = {"save"}, usage = "[format] <filename>", desc = "Save a schematic into your clipboard")
     @Deprecated
     @CommandPermissions({"worldedit.clipboard.save", "worldedit.schematic.save", "worldedit.schematic.save.other"})
-    public void save(final Player player, final LocalSession session, @Optional("schematic") final String formatName, String filename) throws CommandException, WorldEditException {
+    public void save(final Player player, final LocalSession session, @Optional("schematic") final String formatName, String filename, @Switch('g') boolean global) throws CommandException, WorldEditException {
         final LocalConfiguration config = this.worldEdit.getConfiguration();
         final ClipboardFormat format = ClipboardFormat.findByAlias(formatName);
         if (format == null) {
             player.printError("Unknown schematic format: " + formatName);
             return;
         }
-        if (filename.contains("../") && !player.hasPermission("worldedit.schematic.save.other")) {
-            BBC.NO_PERM.send(player, "worldedit.schematic.save.other");
-            return;
-        }
         File working = this.worldEdit.getWorkingDirectoryFile(config.saveDir);
-        File dir = Settings.IMP.PATHS.PER_PLAYER_SCHEMATICS ? new File(working, player.getUniqueId().toString()) : working;
+        File dir = global && Settings.IMP.PATHS.PER_PLAYER_SCHEMATICS ? new File(working, player.getUniqueId().toString()) : working;
+        if (filename.contains("../")) {
+            if (!player.hasPermission("worldedit.schematic.save.other")) {
+                BBC.NO_PERM.send(player, "worldedit.schematic.save.other");
+                return;
+            }
+            if (filename.startsWith("../")) {
+                dir = working;
+                filename = filename.substring(3);
+            }
+        }
         File f = this.worldEdit.getSafeSaveFile(player, dir, filename, format.getExtension(), format.getExtension());
         if (f.getName().replaceAll("." + format.getExtension(), "").isEmpty()) {
             File directory = f.getParentFile();
