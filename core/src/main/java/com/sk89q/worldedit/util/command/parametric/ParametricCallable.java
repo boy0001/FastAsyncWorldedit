@@ -256,7 +256,6 @@ public class ParametricCallable implements CommandCallable {
         } catch (UnconsumedParameterException e) {
             throw new InvalidUsageException("Too many parameters! Unused parameters: " + e.getUnconsumed(), this, true);
         } catch (ParameterException e) {
-            e.printStackTrace();
             assert parameter != null;
             String name = parameter.getName();
 

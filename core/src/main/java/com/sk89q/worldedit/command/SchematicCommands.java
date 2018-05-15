@@ -600,9 +600,7 @@ public class SchematicCommands extends MethodCommands {
                         color = "&6";
                     } else {
                         color = "&a";
-                        System.out.println("Name " + name + " | " + name.lastIndexOf('.'));
                         if (name.indexOf('.') != -1) name = name.substring(0, name.lastIndexOf('.'));
-                        System.out.println(" -> " + name);
                     }
                 } else if (uriStr.startsWith("http://") || uriStr.startsWith("https://")) {
                     // url

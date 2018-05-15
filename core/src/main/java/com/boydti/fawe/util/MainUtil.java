@@ -497,10 +497,8 @@ public class MainUtil {
             Method method = sysclass.getDeclaredMethod("addURL", parameters);
             method.setAccessible(true);
             if (sysloader instanceof URLClassLoader) {
-                System.out.println("Sys loader");
                 method.invoke(sysloader, new Object[]{u});
             } else {
-                System.out.println("Not sys loader");
                 ClassLoader loader = MainUtil.class.getClassLoader();
                 while (!(loader instanceof URLClassLoader) && loader.getParent() != null) {
                     loader = loader.getParent();
@@ -509,7 +507,6 @@ public class MainUtil {
                     method.invoke(sysloader, new Object[]{u});
                 } else {
                     loader = new URLClassLoader(new URL[]{u}, MainUtil.class.getClassLoader());
-                    System.out.println("Loaded true");
                     return loader;
                 }
             }

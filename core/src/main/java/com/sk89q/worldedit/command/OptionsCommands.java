@@ -113,8 +113,6 @@ public class OptionsCommands {
                 int min = Integer.parseInt(context.getString(0));
                 int max = Integer.parseInt(context.getString(1));
                 if (min < 0 || max > 100) throw new ParameterException("Complexity must be in the range 0-100");
-
-                System.out.println("Clean " + min + " | " + max);
                 if (min != 0 || max != 100) util = new CleanTextureUtil(util, min, max);
 
                 randomIndex = 2;
