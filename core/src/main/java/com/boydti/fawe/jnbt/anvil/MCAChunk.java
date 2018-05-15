@@ -278,9 +278,9 @@ public class MCAChunk extends FaweChunk<Void> {
                 short pair = MathMan.tripleBlockCoord(x, y, z);
                 CompoundTag tag = entry.getValue();
                 Map<String, Tag> map = ReflectionUtils.getMap(tag.getValue());
-                map.put("x", new IntTag(x + (getX() << 4)));
+                map.put("x", new IntTag((x & 15) + (getX() << 4)));
                 map.put("y", new IntTag(y));
-                map.put("z", new IntTag(z + (getZ() << 4)));
+                map.put("z", new IntTag((z & 15) + (getZ() << 4)));
                 tiles.put(pair, tag);
             }
         }
