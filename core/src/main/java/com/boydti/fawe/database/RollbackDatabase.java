@@ -6,7 +6,7 @@ import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.logging.rollback.RollbackOptimizedHistory;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.changeset.DiskStorageHistory;
-import com.boydti.fawe.object.task.SingleThreadNotifyQueue;
+import com.boydti.fawe.object.task.AsyncNotifyQueue;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.Vector;
@@ -23,7 +23,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 
-public class RollbackDatabase extends SingleThreadNotifyQueue {
+public class RollbackDatabase extends AsyncNotifyQueue {
 
     private final String prefix;
     private final File dbLocation;

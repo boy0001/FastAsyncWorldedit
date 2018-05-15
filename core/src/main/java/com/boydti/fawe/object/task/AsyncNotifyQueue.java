@@ -3,12 +3,12 @@ package com.boydti.fawe.object.task;
 import com.boydti.fawe.util.TaskManager;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public abstract class SingleThreadNotifyQueue {
+public abstract class AsyncNotifyQueue {
     private Object lock = new Object();
     private final Runnable task;
     private final AtomicBoolean running = new AtomicBoolean();
 
-    public SingleThreadNotifyQueue() {
+    public AsyncNotifyQueue() {
         this.task = new Runnable() {
             @Override
             public void run() {

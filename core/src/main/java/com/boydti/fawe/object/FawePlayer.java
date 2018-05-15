@@ -8,6 +8,7 @@ import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.brush.visualization.VirtualWorld;
 import com.boydti.fawe.object.clipboard.DiskOptimizedClipboard;
 import com.boydti.fawe.object.exception.FaweException;
+import com.boydti.fawe.object.task.SimpleAsyncNotifyQueue;
 import com.boydti.fawe.regions.FaweMaskManager;
 import com.boydti.fawe.util.*;
 import com.boydti.fawe.wrappers.FakePlayer;
@@ -29,12 +30,12 @@ import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.registry.WorldData;
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class FawePlayer<T> extends Metadatable {
@@ -127,6 +128,35 @@ public abstract class FawePlayer<T> extends Metadatable {
         }
     }
 
+    public int cancel(boolean close) {
+        Collection<FaweQueue> queues = SetQueue.IMP.getAllQueues();
+        int cancelled = 0;
+        clearActions();
+        for (FaweQueue queue : queues) {
+            Collection<EditSession> sessions = queue.getEditSessions();
+            for (EditSession session : sessions) {
+                FawePlayer currentPlayer = session.getPlayer();
+                if (currentPlayer == this) {
+                    if (session.cancel()) {
+                        cancelled++;
+                    }
+                }
+            }
+        }
+        VirtualWorld world = getSession().getVirtualWorld();
+        if (world != null) {
+            if (close) {
+                try {
+                    world.close(false);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            else world.clear();
+        }
+        return cancelled;
+    }
+
     public void checkConfirmation(String command, int times, int limit) throws RegionOperationException {
         if (command == null || getMeta("cmdConfirmRunning", false)) {
             return;
@@ -198,14 +228,11 @@ public abstract class FawePlayer<T> extends Metadatable {
         if (confirm == null) {
             return false;
         }
-        queueAction(new Runnable() {
-            @Override
-            public void run() {
-                setMeta("cmdConfirmRunning", true);
-                CommandEvent event = new CommandEvent(getPlayer(), confirm);
-                CommandManager.getInstance().handleCommandOnCurrentThread(event);
-                setMeta("cmdConfirmRunning", false);
-            }
+        queueAction(() -> {
+            setMeta("cmdConfirmRunning", true);
+            CommandEvent event = new CommandEvent(getPlayer(), confirm);
+            CommandManager.getInstance().handleCommandOnCurrentThread(event);
+            setMeta("cmdConfirmRunning", false);
         });
         return true;
     }
@@ -220,62 +247,16 @@ public abstract class FawePlayer<T> extends Metadatable {
         }
     }
 
-    private AtomicInteger runningCount = new AtomicInteger();
-
+    /**
+     * Queue an action to run async
+     * @param run
+     */
     public void queueAction(final Runnable run) {
-        Runnable wrappedTask = new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    run.run();
-                } catch (Throwable e) {
-                    while (e.getCause() != null) {
-                        e = e.getCause();
-                    }
-                    if (e instanceof WorldEditException) {
-                        sendMessage(BBC.getPrefix() + e.getLocalizedMessage());
-                    } else {
-                        FaweException fe = FaweException.get(e);
-                        if (fe != null) {
-                            sendMessage(fe.getMessage());
-                        } else {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-                runningCount.decrementAndGet();
-                Runnable next = getActions().poll();
-                if (next != null) {
-                    next.run();
-                }
-            }
-        };
-        getActions().add(wrappedTask);
-        FaweLimit limit = getLimit();
-        if (runningCount.getAndIncrement() < limit.MAX_ACTIONS) {
-            Runnable task = getActions().poll();
-            if (task != null) {
-                task.run();
-            }
-        }
+        runAction(run, false, true);
     }
 
     public void clearActions() {
-        while (getActions().poll() != null) {
-            runningCount.decrementAndGet();
-        }
-    }
-
-    private ConcurrentLinkedDeque<Runnable> getActions() {
-        ConcurrentLinkedDeque<Runnable> adder = getMeta("fawe_action_v2");
-        if (adder == null) {
-            adder = new ConcurrentLinkedDeque();
-            ConcurrentLinkedDeque<Runnable> previous = (ConcurrentLinkedDeque<Runnable>) getAndSetMeta("fawe_action_v2", adder);
-            if (previous != null) {
-                setMeta("fawe_action_v2", adder = previous);
-            }
-        }
-        return adder;
+        asyncNotifyQueue.clear();
     }
 
     public boolean runAsyncIfFree(Runnable r) {
@@ -286,29 +267,52 @@ public abstract class FawePlayer<T> extends Metadatable {
         return runAction(r, true, false);
     }
 
-    public boolean runAction(final Runnable ifFree, boolean checkFree, boolean async) {
-        long[] actionTime = getMeta("lastActionTime");
-        if (actionTime == null) {
-            setMeta("lastActionTime", actionTime = new long[2]);
-        }
-        actionTime[1] = actionTime[0];
-        actionTime[0] = Fawe.get().getTimer().getTick();
-        if (checkFree) {
-            if (async) {
-                TaskManager.IMP.taskNow(new Runnable() {
-                    @Override
-                    public void run() {
-                        queueAction(ifFree);
-                    }
-                }, async);
-            } else {
-                queueAction(ifFree);
+    // Queue for async tasks
+    private AtomicInteger runningCount = new AtomicInteger();
+    private SimpleAsyncNotifyQueue asyncNotifyQueue = new SimpleAsyncNotifyQueue(new Thread.UncaughtExceptionHandler() {
+        @Override
+        public void uncaughtException(Thread t, Throwable e) {
+            while (e.getCause() != null) {
+                e = e.getCause();
             }
-            return true;
-        } else {
-            TaskManager.IMP.taskNow(ifFree, async);
+            if (e instanceof WorldEditException) {
+                sendMessage(BBC.getPrefix() + e.getLocalizedMessage());
+            } else {
+                FaweException fe = FaweException.get(e);
+                if (fe != null) {
+                    sendMessage(fe.getMessage());
+                } else {
+                    e.printStackTrace();
+                }
+            }
         }
-        return false;
+    });
+
+    /**
+     * Run a task either async, or on the current thread
+     * @param ifFree
+     * @param checkFree Whether to first check if a task is running
+     * @param async
+     * @return false if the task was ran or queued
+     */
+    public boolean runAction(final Runnable ifFree, boolean checkFree, boolean async) {
+        if (checkFree) {
+            if (runningCount.get() != 0) return false;
+        }
+        Runnable wrapped = () -> {
+            try {
+                runningCount.addAndGet(1);
+                ifFree.run();
+            } finally {
+                runningCount.decrementAndGet();
+            }
+        };
+        if (async) {
+            asyncNotifyQueue.queue(wrapped);
+        } else {
+            TaskManager.IMP.taskNow(wrapped, false);
+        }
+        return true;
     }
 
     public boolean checkAction() {
@@ -609,6 +613,7 @@ public abstract class FawePlayer<T> extends Metadatable {
      * - Usually called on logout
      */
     public void unregister() {
+        cancel(true);
         if (Settings.IMP.HISTORY.DELETE_ON_LOGOUT) {
             session = getSession();
             WorldEdit.getInstance().removeSession(toWorldEditPlayer());

@@ -21,25 +21,7 @@ public class Cancel extends FaweCommand {
         if (player == null) {
             return false;
         }
-        UUID uuid = player.getUUID();
-        Collection<FaweQueue> queues = SetQueue.IMP.getAllQueues();
-        int cancelled = 0;
-        player.clearActions();
-        for (FaweQueue queue : queues) {
-            Collection<EditSession> sessions = queue.getEditSessions();
-            for (EditSession session : sessions) {
-                FawePlayer currentPlayer = session.getPlayer();
-                if (currentPlayer == player) {
-                    if (session.cancel()) {
-                        cancelled++;
-                    }
-                }
-            }
-        }
-        VirtualWorld world = player.getSession().getVirtualWorld();
-        if (world != null) {
-            world.clear();
-        }
+        int cancelled = player.cancel(false);
         BBC.WORLDEDIT_CANCEL_COUNT.send(player, cancelled);
         return true;
     }
