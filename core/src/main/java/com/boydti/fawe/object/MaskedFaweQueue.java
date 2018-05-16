@@ -24,7 +24,7 @@ public class MaskedFaweQueue extends DelegateFaweQueue {
     public void setMask(Region[] mask) {
         switch (mask.length) {
             case 0:
-                region = new HeightBoundExtent(this, FaweLimit.MAX.copy(), Integer.MIN_VALUE, Integer.MAX_VALUE);
+                region = new HeightBoundExtent(this, FaweLimit.MAX.copy(), 0, 255);
                 break;
             case 1:
                 region = new SingleRegionExtent(this, FaweLimit.MAX.copy(), mask[0]);
