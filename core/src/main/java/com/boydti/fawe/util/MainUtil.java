@@ -28,6 +28,8 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
 import java.util.zip.*;
@@ -1042,30 +1044,45 @@ public class MainUtil {
     }
 
     public static void deleteOlder(File directory, final long timeDiff) {
+        deleteOlder(directory, timeDiff, true);
+    }
+
+    public static void deleteOlder(File directory, final long timeDiff, boolean printDebug) {
         final long now = System.currentTimeMillis();
+        ForkJoinPool pool = new ForkJoinPool();
         iterateFiles(directory, new RunnableVal<File>() {
             @Override
             public void run(File file) {
                 long age = now - file.lastModified();
                 if (age > timeDiff) {
-                    file.delete();
-                    BBC.FILE_DELETED.send(null, file);
+                    pool.submit(() -> file.delete());
+                    if (printDebug) BBC.FILE_DELETED.send(null, file);
                 }
             }
         });
+        pool.shutdown();
+        try {
+            pool.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     public static boolean deleteDirectory(File directory) {
+        return deleteDirectory(directory, true);
+    }
+
+    public static boolean deleteDirectory(File directory, boolean printDebug) {
         if (directory.exists()) {
             File[] files = directory.listFiles();
             if (null != files) {
                 for (int i = 0; i < files.length; i++) {
                     File file = files[i];
                     if (file.isDirectory()) {
-                        deleteDirectory(files[i]);
+                        deleteDirectory(files[i], printDebug);
                     } else {
                         file.delete();
-                        BBC.FILE_DELETED.send(null, file);
+                        if (printDebug) BBC.FILE_DELETED.send(null, file);
                     }
                 }
             }
