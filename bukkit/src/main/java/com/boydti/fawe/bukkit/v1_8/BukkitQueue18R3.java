@@ -271,6 +271,7 @@ public class BukkitQueue18R3 extends BukkitQueue_0<net.minecraft.server.v1_8_R3.
 
                     nmsWorld.chunkProviderServer.chunkProvider = generator;
 
+                    keepLoaded.remove(MathMan.pairInt(x, z));
                     result = getWorld().regenerateChunk(x, z);
 
                     nmsWorld.chunkProviderServer.chunkProvider = existingGenerator;

@@ -177,6 +177,7 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<net.minecraft.server.v1_9_
 
                     ReflectionUtils.setFailsafeFieldValue(fieldChunkGenerator, this.nmsWorld.getChunkProviderServer(), generator);
 
+                    keepLoaded.remove(MathMan.pairInt(x, z));
                     result = getWorld().regenerateChunk(x, z);
 
                     ReflectionUtils.setFailsafeFieldValue(fieldChunkGenerator, this.nmsWorld.getChunkProviderServer(), existingGenerator);
