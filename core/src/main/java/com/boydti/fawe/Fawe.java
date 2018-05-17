@@ -218,6 +218,9 @@ public class Fawe {
          * Implementation dependent stuff
          */
         this.setupConfigs();
+
+        TaskManager.IMP = this.IMP.getTaskManager();
+
         TaskManager.IMP.async(new Runnable() {
             @Override
             public void run() {
@@ -226,7 +229,6 @@ public class Fawe {
             }
         });
 
-        TaskManager.IMP = this.IMP.getTaskManager();
         if (Settings.IMP.METRICS) {
             try {
                 this.stats = new BStats();
