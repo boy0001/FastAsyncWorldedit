@@ -239,7 +239,7 @@ worldedit:
     biome_changed: Biome wurden geändert in %s0 Chunks.
   utility:
     kill_success: '%s0 Entities in einem Radius von %s1 getötet.'
-    nothing_confirmed: Due hast keine zur Autorisierung ausstehenden Aktionen.
+    nothing_confirmed: Du hast keine zur Autorisierung ausstehenden Aktionen.
     page_footer: Benutze %s0 um zur nächsten Seite zu gehen
   timezone:
     timezone_set: 'Zeitzone für diese Sitzung gesetzt auf: %s0'
