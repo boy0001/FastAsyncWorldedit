@@ -1,3 +1,4 @@
+#Adjusted and updated by NotMyFault
 info:
   prefix: '&4&lFAWE:&f&7'
   schematic_pasting: '&7Die Schematic wird eingefügt. Dies kann nicht rückgängig gemacht
@@ -21,7 +22,6 @@ info:
   worldedit_unsafe: '&7Der Zugang zu diesem Befehl wurde verboten.'
   worldedit_dangerous_worldedit: '&cFAWE führt unsicher WorldEdit Aktionen aus! Position:
     %s0 Spielername: %s1'
-  worldedit_bypass: '&7&oUm deine Beschränkungen zu ignorieren nutze &c/wea'
   worldedit_bypassed: '&7Beschränkungen werden nun ignoriert.'
   worldedit_unmasked: '&6Deine WorldEdit Beschränkungen sind nun aufgehoben.'
   worldedit_restricted: '&6Deine WorldEdit Beschränkungen sind nun aktiv.'
@@ -37,7 +37,7 @@ info:
     Licht zu entfernen nutze //removelight)'
   worldedit_toggle_tips_on: '&7WorldEdit Tipps deaktiviert.'
   worldedit_toggle_tips_off: '&7WorldEdit Tipps aktiviert.'
-  file_deleted: '%s0 has been deleted.'
+  file_deleted: '%s0 wurde gelöscht.'
 error:
   worldedit_extend: '&cDeine WorldEdit Aktion überschreitet die erlaubte Region'
   command_syntax: '&cBenutzung: &7%s0'
@@ -45,7 +45,7 @@ error:
   setting_disable: '&cFehlende Einstellung: %s0'
   schematic_not_found: '&cSchematic nicht gefunden: &7%s0'
   no_region: '&cDu hast keine aktive WorldEdit Markierung'
-  no_mask: '&cDu hast keine Mask gesetzt'
+  no_mask: '&cDu hast keine Maske gesetzt'
   not_player: '&cDieser Befehl kann nur von Spielern ausgeführt werden!'
   player_not_found: '&cSpieler nicht gefunden:&7 %s0'
   oom: |-
@@ -57,14 +57,14 @@ error:
     &8 - &7Unnötig verwendeten Speicher freigeben.
     &cIgnoriere diese Meldung, wenn du versuchst den Server zu crashen.
     &7Note: Wenig freier Speicher kann unter Umständen wegen WE passiert sein.
-  worldedit_some_fails: '&c%s0 Blöcke wurden nicht platziert, da sie ausserhalb der
+  worldedit_some_fails: '&c%s0 Blöcke wurden nicht platziert, da sie außerhalb der
     erlaubten Region sind.'
   worldedit_some_fails_blockbag: '&cFehlende Blöcke: %s0'
-  web_unauthorized: 'Only links from the configured web host is allowed: %s0'
-  brush_not_found: '&cAvailable brushes: %s0'
-  brush_incompatible: '&cBrush not compatible with this version'
+  web_unauthorized: 'Es sind nur Links vom konfigurierten Webhost erlaubt: %s0'
+  brush_not_found: '&Verfügbare Brushes: %s0'
+  brush_incompatible: '&cBrush ist nicht kompatibel mit dieser Version'
 web:
-  generating_link: Lade %s hoch, Bitte warten...
+  generating_link: Lade %s hoch, bitte warten...
   generating_link_failed: '&cErstellung eines Download-Links fehlgeschlagen!'
   download_link: '%s'
 worldedit:
@@ -79,6 +79,8 @@ worldedit:
     fast_disabled: Fast-Modus deaktiviert
     place_enabled: 'Platziere nun an Pos. #1.'
     place_disabled: Platziere nun an dem Block in dem du stehst.
+    texture_disabled: Texturen zurückgesetzt
+    texture_set: Textur auf %s1 gestellt
   copy:
     command_copy: '%s0 Blöcke kopiert'
   cut:
@@ -141,7 +143,7 @@ worldedit:
     brush_spline_secondary_error: Nicht genügend Positionen gesetzt!
     brush_spline_secondary: Kurve erstellt
     brush_size: Brush Größe gesetzt
-    brush_range: Brush Größe gesetzt
+    brush_range: Brush Weite gesetzt
     brush_mask_disabled: Brush Maske deaktiviert
     brush_mask: Brush Maske gesetzt
     brush_transform_disabled: Brush Transformation deaktiviert
@@ -153,17 +155,17 @@ worldedit:
     brush_none: Du hältst kein Tool in der Hand, das man als Brush verwenden kann!
     brush_source_mask_disabled: Brush Quell-Maske deaktiviert
     brush_source_mask: Brush Quell-Maske gesetzt
-    brush_reset: Reset your brush.
-    brush_scroll_action_set: Set scroll action to %s0
-    brush_scroll_action_unset: Removed scrol action
-    brush_visual_mode_set: Set visual mode to %s0
-    brush_target_mode_set: Set target mode to %s0
-    brush_target_mask_set: Set target mask to %s0
-    brush_target_offset_set: Set target offset to %s0
-    brush_equipped: Equipped brush %s0
-    brush_line_primary: Added point %s0, click another position to create the line
-    brush_line_secondary: Created spline
-    brush_spline_primary_2: Added position, Click the same spot to join!
+    brush_reset: Brush zurückgesetzt.
+    brush_scroll_action_set: Scroll Aktion auf %s0 gesetzt
+    brush_scroll_action_unset: Scroll Aktion entfernt
+    brush_visual_mode_set: Visualiserungsmodus auf %s0 gesetzt
+    brush_target_mode_set: Zielmodus auf %s0 gesetzt
+    brush_target_mask_set: Zielmaske auf %s0 gesetzt
+    brush_target_offset_set: Zielausrichtung auf %s0 gesetzt
+    brush_equipped: Brush %s0 ausgerüstet
+    brush_line_primary: Punkt %s0 hinzugefügt, klicke auf eine andere Position um die Linie zu erstellen
+    brush_line_secondary: Spline erstellt
+    brush_spline_primary_2: Position hinzugefügt, klicke auf die gleiche Postiion um zu beginnen!
   rollback:
     rollback_element: annulliere %s0
   tool:
@@ -196,23 +198,35 @@ worldedit:
     schematic_none: Keine Schematics gefunden.
     schematic_list: 'Verfügbare Schematics (Dateiname: Format) [%s0/%s1]:'
     schematic_list_elem: '&8 - &a%s0 &8- &7%s1'
+    schematic_prompt_clear: '&7Meintest du &c%s0 &7um deine Zwischenablage zu leeren'
+    schematic_show: |-
+      &7Displaying &a%s0&7 Schematics von &a%s1&7:
+      &8 - &aLinksklick &7a um der Zwischenablage hinzuzufügen
+      &8 - &aRechtsklick &7um etwas deiner Multi-Zwischenablage hinzuzufügen
+      &8 - &7Benutze &a%s2&7 um zur richtigen Welt zurückzukehren
+    schematic_move_exists: '&c%s0 existiert bereits'
+    schematic_move_success: '&a%s0 -> %s1'
+    schematic_move_failed: '&a%s0 wurde nicht bewegt: %s1'
   clipboard:
     clipboard_cleared: Zwischenablage geleert
     clipboard_invalid_format: 'Unbekanntes Zwischenablage Format:  %s0'
+    clipboard_uri_not_found: Du hast %s0 nicht geladen
   visitor:
     visitor_block: '%s0 Blöcke betroffen'
     visitor_entity: '%s0 Entities betroffen'
     visitor_flat: '%s0 Spalten betroffen'
   selector:
-    selector_cuboid_pos1: Pos 1 gesetzt %s0 %s1.
-    selector_cuboid_pos2: Pos 2 gesetzt %s0 %s1.
     selector_invalid_coordinates: Ungültige Koordinaten %s0
     selector_already_set: Position bereits gesetzt.
     selector_fuzzy_pos1: Region gesetzt und expandiert von %s0 %s1.
     selector_fuzzy_pos2: Erweiterung hinzugefügt um %s0 %s1.
     selector_set_default: Dein Standard Auswahl-Tool ist nun %s0.
+    selector_pos: Position%s0 zu %s1 (%s2) gesetzt.
+    selector_center: Mittelpunkt zu %s0 (%s1) gesetzt.
+    selector_radius: Radius zu %s0 (%s1) gesetzt.
+    selector_expanded: Region expandiert auf %s0 (%s1).
   command:
-    command_invalid_syntax: Der Command wurde nicht richtig benutzt. (Keine weitere
+    command_invalid_syntax: Der Befehl wurde nicht richtig benutzt. (Keine weitere
       Hilfe verfügbar).
   snapshot:
     snapshot_loaded: Snapshot '%s0' geladen; Wiederherstellung läuft...
@@ -225,25 +239,24 @@ worldedit:
     biome_changed: Biome wurden geändert in %s0 Chunks.
   utility:
     kill_success: '%s0 Entities in einem Radius von %s1 getötet.'
-    nothing_confirmed: You have no actions pending confirmation.
-    page_footer: Use %s0 to go to the next page
+    nothing_confirmed: Due hast keine zur Autorisierung ausstehenden Aktionen.
+    page_footer: Benutze %s0 um zur nächsten Seite zu gehen
   timezone:
     timezone_set: 'Zeitzone für diese Sitzung gesetzt auf: %s0'
     timezone_display: 'Aktuelle Zeit in dieser Zeitzone:  %s0'
   navigation:
-    navigation_wand_error: '&cNothing to pass through'
+    navigation_wand_error: '&cNichts zu durchqueren'
   anvil:
-    world_is_loaded: The world shouldn't be in use when executing. Unload the world,
-      or use use -f to override (save first)
+    world_is_loaded: Die Welt sollte nicht in Benutzung sein währen der Ausführung. Entlade die Welt, oder überschreibe diese mit -f (vorher speichern)
   help:
-    command_clarifying_bracket: '&7Added clarifying bracket for &c%s0'
-    help_suggest: '&7Couldn''t find %s0. Maybe try one of &c%s1 &7?'
-    help_header_categories: Command Types
-    help_header_subcommands: Subcommands
-    help_header_command: '&cHelp for: &7%s0'
+    command_clarifying_bracket: '&7Klammer für&c%s0 wurde hinzugefügt'
+    help_suggest: '&7%s0 konnte nicht gefunden werden. Versuche &c%s1 &7'
+    help_header_categories: Befehlstypen
+    help_header_subcommands: Unterbefehle
+    help_header_command: '&cHilfe für: &7%s0'
     help_item_allowed: '&a%s0&8 - &7%s1'
     help_item_denied: '&c%s0&8 - &7%s1'
-    help_header: 'Help: page %s0/%s1'
+    help_header: 'Hilfe: Seite %s0/%s1'
     help_footer: '&7Wiki: https://git.io/vSKE5'
 progress:
   progress_message: '[ Zwischenspeicher: %s0 | Erledigt: %s1 ]'
@@ -258,13 +271,14 @@ cancel:
   worldedit_cancel_reason_max_tiles: Zu viele Blockstatus
   worldedit_cancel_reason_max_entities: Zu viele Entities
   worldedit_cancel_reason_max_iterations: Maximale Wiederholungen
-  worldedit_cancel_reason_max_fails: Ausserhalb erlaubter Regionen (Ignorieren mit
-    /wea)
   worldedit_cancel_reason_no_region: Keine erlaubte Region (Ignorieren mit /wea)
   worldedit_failed_load_chunk: '&cÜberspringe das Laden von Chunk: &7%s0;%s1&c. Versuche
     chunk-wait zu erhöhen.'
-  worldedit_cancel_reason_confirm: '&7Your selection is large (%s0 -> %s1). Use &c//confirm
-    &7to execute &c%s2'
+  worldedit_cancel_reason_confirm: '&7Deine Selektion ist zu groß (%s0 -> %s1). Benutze &c//confirm
+    &7um &c%s2 auszuführen'
+  worldedit_cancel_reason_outside_level: Außerhalb der Welt
+  worldedit_cancel_reason_outside_region: Außerhalb erlaubter Region (Bypass mit /wea,
+    oder deaktiviere `region-restrictions` in der config.yml)
 history: {}
 navigation:
   ascend_fail: Kein freier Platz über dir gefunden.
@@ -322,7 +336,7 @@ tips:
   tip_rotate: 'Tipp: Ausrichten mit &c//rotate'
   tip_copy_pattern: 'Tipp: Um ein Muster zu verwenden nutze &c#copy'
   tip_lazycut: '&7Tipp: Es ist sicherer den Befehl &c//lazycut zu verwenden.'
-  tip_regen_0: 'Tip: Use a biome with /regen [biome]'
-  tip_regen_1: 'Tip: Use a seed with /regen [biome] [seed]'
-  tip_biome_pattern: 'Tip: The &c#biome[forest]&7 pattern can be used in any command'
-  tip_biome_mask: 'Tip: Restrict to a biome with the `$jungle` mask'
+  tip_regen_0: 'Tipp: Benutze ein Biom mit /regen [biome]'
+  tip_regen_1: 'Tipp: Benutzte einen Seed mit /regen [biome] [seed]'
+  tip_biome_pattern: 'Tipp: Das &c#biome[forest]&7 Muster kann in jedem Befehl genutzt werden'
+  tip_biome_mask: 'Tipp: Beschränke ein Biom mit der `$jungle` Maske'
