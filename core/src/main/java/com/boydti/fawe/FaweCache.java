@@ -910,7 +910,7 @@ public class FaweCache {
             case 253:
             case 254:
             case 256:
-                return true;
+                return false;
             default:
                 return id > 256;
         }
