@@ -285,7 +285,7 @@ public class SchematicCommands extends MethodCommands {
             return;
         }
         File working = this.worldEdit.getWorkingDirectoryFile(config.saveDir);
-        File dir = global && Settings.IMP.PATHS.PER_PLAYER_SCHEMATICS ? new File(working, player.getUniqueId().toString()) : working;
+        File dir = !global && Settings.IMP.PATHS.PER_PLAYER_SCHEMATICS ? new File(working, player.getUniqueId().toString()) : working;
         if (filename.contains("../")) {
             if (!player.hasPermission("worldedit.schematic.save.other")) {
                 BBC.NO_PERM.send(player, "worldedit.schematic.save.other");
