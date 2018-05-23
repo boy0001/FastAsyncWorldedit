@@ -64,6 +64,8 @@ public abstract class ScrollAction implements ScrollTool {
                     patterns[i - 1] = WorldEdit.getInstance().getPatternFactory().parseFromInput(arg, parserContext);
                 }
                 return (new ScrollPattern(tool, patterns));
+            case "targetoffset":
+                return (new ScrollTargetOffset(tool));
             case "range":
                 return (new ScrollRange(tool));
             case "size":
