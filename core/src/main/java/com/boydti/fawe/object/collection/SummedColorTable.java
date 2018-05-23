@@ -1,5 +1,6 @@
 package com.boydti.fawe.object.collection;
 
+import com.boydti.fawe.util.MathMan;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 
@@ -172,7 +173,7 @@ public class SummedColorTable {
         float factor = this.areaInverses[area - 1];
         float alpha = (totAlpha * factor);
         factor = (factor * 256) / alpha;
-        return ((int) alpha << 24) + (((int) (totRed * factor)) << 16) + (((int) (totGreen * factor)) << 8) + (((int) (totBlue * factor)) << 0);
+        return (MathMan.clamp((int) alpha, 0, 255) << 24) + (((int) (totRed * factor)) << 16) + (((int) (totGreen * factor)) << 8) + (((int) (totBlue * factor)) << 0);
     }
 
     private long getVal(int row, int col, int index, long curr, long[] summed) {

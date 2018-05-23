@@ -686,6 +686,7 @@ public class CFICommands extends MethodCommands {
             usage = "<url>",
             desc = "Color terrain using glass"
     )
+    // ![79,174,212,5:3,5:4,18,161,20]
     @CommandPermissions("worldedit.anvil.cfi")
     public void glass(FawePlayer fp, BufferedImage image, @Optional BufferedImage imageMask, @Optional Mask mask, @Switch('w') boolean disableWhiteOnly) throws ParameterException, WorldEditException {
         CFISettings settings = assertSettings(fp);
