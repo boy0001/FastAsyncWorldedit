@@ -314,7 +314,7 @@ public class BrushOptionsCommands extends MethodCommands {
 
     @Command(
             aliases = {"scroll"},
-            usage = "[none|clipboard|mask|pattern|range|size|visual|target]",
+            usage = "[none|clipboard|mask|pattern|range|size|visual|target|targetoffset]",
             desc = "Toggle between different target modes",
             min = 1,
             max = -1
