@@ -467,7 +467,7 @@ public final class CommandManager {
                     public void run() {
                         handleCommandOnCurrentThread(finalEvent);
                     }
-                }, true, false)) {
+                }, false, true)) {
                     BBC.WORLDEDIT_COMMAND_LIMIT.send(fp);
                 }
                 finalEvent.setCancelled(true);

@@ -4,9 +4,9 @@ import com.boydti.fawe.util.TaskManager;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class AsyncNotifyQueue {
-    private Object lock = new Object();
-    private final Runnable task;
-    private final AtomicBoolean running = new AtomicBoolean();
+    protected Object lock = new Object();
+    protected final Runnable task;
+    protected final AtomicBoolean running = new AtomicBoolean();
 
     public AsyncNotifyQueue() {
         this.task = new Runnable() {
@@ -25,7 +25,7 @@ public abstract class AsyncNotifyQueue {
 
     public void queue(Runnable queueTask) {
         synchronized (lock) {
-            queueTask.run();
+            if (queueTask != null) queueTask.run();
             if (!running.get()) {
                 running.set(true);
                 TaskManager.IMP.async(task);

@@ -1,5 +1,7 @@
 package com.boydti.fawe.object.task;
 
+import com.boydti.fawe.util.TaskManager;
+
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class SimpleAsyncNotifyQueue extends AsyncNotifyQueue {
@@ -23,6 +25,16 @@ public class SimpleAsyncNotifyQueue extends AsyncNotifyQueue {
                 if (task != null) task.run();
             } catch (Throwable e) {
                 if (handler != null) handler.uncaughtException(Thread.currentThread(), e);
+            }
+        }
+    }
+
+    public void queue(Runnable queueTask) {
+        synchronized (lock) {
+            if (queueTask != null) tasks.add(queueTask);
+            if (!running.get()) {
+                running.set(true);
+                TaskManager.IMP.async(task);
             }
         }
     }

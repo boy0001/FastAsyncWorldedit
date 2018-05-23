@@ -269,21 +269,18 @@ public abstract class FawePlayer<T> extends Metadatable {
 
     // Queue for async tasks
     private AtomicInteger runningCount = new AtomicInteger();
-    private SimpleAsyncNotifyQueue asyncNotifyQueue = new SimpleAsyncNotifyQueue(new Thread.UncaughtExceptionHandler() {
-        @Override
-        public void uncaughtException(Thread t, Throwable e) {
-            while (e.getCause() != null) {
-                e = e.getCause();
-            }
-            if (e instanceof WorldEditException) {
-                sendMessage(BBC.getPrefix() + e.getLocalizedMessage());
+    private SimpleAsyncNotifyQueue asyncNotifyQueue = new SimpleAsyncNotifyQueue((t, e) -> {
+        while (e.getCause() != null) {
+            e = e.getCause();
+        }
+        if (e instanceof WorldEditException) {
+            sendMessage(BBC.getPrefix() + e.getLocalizedMessage());
+        } else {
+            FaweException fe = FaweException.get(e);
+            if (fe != null) {
+                sendMessage(fe.getMessage());
             } else {
-                FaweException fe = FaweException.get(e);
-                if (fe != null) {
-                    sendMessage(fe.getMessage());
-                } else {
-                    e.printStackTrace();
-                }
+                e.printStackTrace();
             }
         }
     });
