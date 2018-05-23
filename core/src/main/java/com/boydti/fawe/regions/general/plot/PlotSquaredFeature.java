@@ -118,7 +118,7 @@ public class PlotSquaredFeature extends FaweMaskManager {
         }
         PlotArea area = pp.getApplicablePlotArea();
         int min = area != null ? area.MIN_BUILD_HEIGHT : 0;
-        int max = area != null ? area.MAX_BUILD_HEIGHT : 255;
+        int max = area != null ? Math.min(255, area.MAX_BUILD_HEIGHT) : 255;
         final HashSet<com.boydti.fawe.object.RegionWrapper> faweRegions = new HashSet<>();
         for (final RegionWrapper current : regions) {
             faweRegions.add(new com.boydti.fawe.object.RegionWrapper(current.minX, current.maxX, min, max, current.minZ, current.maxZ));
