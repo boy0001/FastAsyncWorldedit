@@ -313,7 +313,7 @@ public class Settings extends Config {
                 " - Based on tps and player movement",
                 " - Please provide feedback",
         })
-        public boolean DYNAMIC_CHUNK_RENDERING = false;
+        public int DYNAMIC_CHUNK_RENDERING = -1;
         @Comment({
                 "[SAFE] Allows brushes to be persistent",
         })

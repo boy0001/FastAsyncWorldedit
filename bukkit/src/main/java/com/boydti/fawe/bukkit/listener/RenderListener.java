@@ -1,6 +1,7 @@
 package com.boydti.fawe.bukkit.listener;
 
 import com.boydti.fawe.Fawe;
+import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.util.TaskManager;
 import java.util.Iterator;
@@ -76,7 +77,7 @@ public class RenderListener implements Listener {
 
     public void setViewDistance(Player player, int value) {
         UUID uuid = player.getUniqueId();
-        if (value == 10) {
+        if (value == Settings.IMP.EXPERIMENTAL.DYNAMIC_CHUNK_RENDERING) {
             views.remove(uuid);
         } else {
             int[] val = views.get(uuid);
@@ -100,7 +101,7 @@ public class RenderListener implements Listener {
 
     public int getViewDistance(Player player) {
         int[] value = views.get(player.getUniqueId());
-        return value == null ? 10 : value[0];
+        return value == null ? Settings.IMP.EXPERIMENTAL.DYNAMIC_CHUNK_RENDERING : value[0];
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
