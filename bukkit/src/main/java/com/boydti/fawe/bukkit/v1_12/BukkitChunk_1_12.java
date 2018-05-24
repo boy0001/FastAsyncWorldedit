@@ -3,7 +3,6 @@ package com.boydti.fawe.bukkit.v1_12;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.bukkit.v0.BukkitQueue_0;
-import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweQueue;
@@ -12,15 +11,16 @@ import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.ReflectionUtils;
 import com.sk89q.jnbt.*;
 import com.sk89q.worldedit.internal.Constants;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.util.*;
 import net.minecraft.server.v1_12_R1.*;
 import org.bukkit.Chunk;
 import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_12_R1.CraftChunk;
 import org.bukkit.event.entity.CreatureSpawnEvent;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.util.*;
 
 public class BukkitChunk_1_12 extends CharFaweChunk<Chunk, BukkitQueue_1_12> {
 
@@ -302,8 +302,9 @@ public class BukkitChunk_1_12 extends CharFaweChunk<Chunk, BukkitQueue_1_12> {
                             for (MinecraftKey key : EntityTypes.a()) {
                                 String currentId = EntityTypes.a(key);
                                 Class<? extends Entity> clazz = EntityTypes.b.get(key);
-                                entityKeys.put(currentId, clazz);
-                                entityKeys.put(key.getKey(), clazz);
+                                entityKeys.putIfAbsent(currentId, clazz);
+                                entityKeys.putIfAbsent(key.getKey(), clazz);
+                                entityKeys.put(key.b() + ":" + key.getKey(), clazz);
                             }
                         }
                         Class<? extends Entity> clazz = entityKeys.get(id);
