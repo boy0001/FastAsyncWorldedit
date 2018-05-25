@@ -173,7 +173,7 @@ public class Sniper {
                         public void run() {
                             snipeOnCurrentThread(fp, action, itemInHand, clickedBlock, clickedFace, sniperTool, toolId);
                         }
-                    }, true, false)) {
+                    }, false, true)) {
                         BBC.WORLDEDIT_COMMAND_LIMIT.send(fp);
                     }
                 }
