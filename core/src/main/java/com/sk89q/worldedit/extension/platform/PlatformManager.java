@@ -366,7 +366,7 @@ public class PlatformManager {
                                     selector.explainPrimarySelection(actor, session, vector);
                                 }
                             }
-                        }, true, true);
+                        }, false, true);
 
                         event.setCancelled(true);
                         return;
@@ -381,7 +381,7 @@ public class PlatformManager {
                                 public void run() {
                                     reset(superPickaxe).actPrimary(queryCapability(Capability.WORLD_EDITING), getConfiguration(), player, session, location);
                                 }
-                            }, true, true);
+                            }, false, true);
                             event.setCancelled(true);
                             return;
                         }
@@ -396,7 +396,7 @@ public class PlatformManager {
                                 public void run() {
                                     reset(((DoubleActionBlockTool) tool)).actSecondary(queryCapability(Capability.WORLD_EDITING), getConfiguration(), player, session, location);
                                 }
-                            }, true, true);
+                            }, false, true);
                             event.setCancelled(true);
                             return;
                         }
@@ -417,7 +417,7 @@ public class PlatformManager {
                                         selector.explainSecondarySelection(actor, session, vector);
                                     }
                                 }
-                            }, true, true);
+                            }, false, true);
                         }
                         event.setCancelled(true);
                         return;
@@ -438,7 +438,7 @@ public class PlatformManager {
                                             reset((BlockTool) tool).actPrimary(queryCapability(Capability.WORLD_EDITING), getConfiguration(), player, session, location);
                                         }
                                     }
-                                }, true, true);
+                                }, false, true);
                                 event.setCancelled(true);
                                 return;
                             }
@@ -544,7 +544,7 @@ public class PlatformManager {
                                 public void run() {
                                     reset((TraceTool) tool).actPrimary(queryCapability(Capability.WORLD_EDITING), getConfiguration(), player, session);
                                 }
-                            }, true, true);
+                            }, false, true);
                             event.setCancelled(true);
                             return;
                         }
