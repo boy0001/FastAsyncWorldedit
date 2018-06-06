@@ -217,7 +217,8 @@ public class AbstractDelegateExtent implements LightingExtent {
     @Nullable
     Operation commit() {
         Operation ours = commitBefore();
-        Operation other = extent.commit();
+        Operation other = null;
+        if (extent != this) other = extent.commit();
         if (ours != null && other != null) {
             return new OperationQueue(ours, other);
         } else if (ours != null) {
