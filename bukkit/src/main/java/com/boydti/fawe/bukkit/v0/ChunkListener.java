@@ -39,6 +39,9 @@ import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.inventory.FurnaceBurnEvent;
 import org.bukkit.event.inventory.FurnaceSmeltEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
+import org.bukkit.util.Vector;
+
+import java.util.List;
 
 public abstract class ChunkListener implements Listener {
 
@@ -219,8 +222,8 @@ public abstract class ChunkListener implements Listener {
                 int cz = block.getZ() >> 4;
                 physCancelPair = MathMan.pairInt(cx, cz);
                     if (rateLimit <= 0) {
-                rateLimit = 20;
-                Fawe.debug("[FAWE `tick-limiter`] Detected and cancelled physics  lag source at " + block.getLocation());
+                        rateLimit = 20;
+                        Fawe.debug("[FAWE `tick-limiter`] Detected and cancelled physics  lag source at " + block.getLocation());
                     }
                 cancelNearby(cx, cz);
                 event.setCancelled(true);
@@ -328,21 +331,13 @@ public abstract class ChunkListener implements Listener {
                 int len = className.length();
                 if (className != null) {
                     if (len > 15 && className.charAt(len - 15) == 'E' && className.endsWith("EntityFireworks")) {
-                        int chunkRange = 2;
-                        for (int ocx = -chunkRange; ocx <= chunkRange; ocx++) {
-                            for (int ocz = -chunkRange; ocz <= chunkRange; ocz++) {
-                                int cx = chunk.getX() + ocx;
-                                int cz = chunk.getZ() + ocz;
-                                if (world.isChunkLoaded(cx, cz)) {
-                                    Chunk relativeChunk = world.getChunkAt(cx, cz);
-                                    Entity[] ents = relativeChunk.getEntities();
-                                    for (Entity ent : ents) {
-                                        switch (ent.getType()) {
-                                            case FIREWORK:
-                                                Fawe.debug("[FAWE `tick-limiter`] Detected and cancelled rogue FireWork at " + ent.getLocation());
-                                                ent.remove();
-                                        }
-                                    }
+                        for (Entity ent : world.getEntities()) {
+                            if (ent.getType() == EntityType.FIREWORK) {
+                                Vector velocity = ent.getVelocity();
+                                double vertical = Math.abs(velocity.getY());
+                                if (Math.abs(velocity.getX()) > vertical || Math.abs(velocity.getZ()) > vertical) {
+                                    Fawe.debug("[FAWE `tick-limiter`] Detected and cancelled rogue FireWork at " + ent.getLocation());
+                                    ent.remove();
                                 }
                             }
                         }
