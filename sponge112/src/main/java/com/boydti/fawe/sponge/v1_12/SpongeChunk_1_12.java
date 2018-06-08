@@ -259,6 +259,7 @@ public class SpongeChunk_1_12 extends CharFaweChunk<Chunk, SpongeQueue_1_12> {
             // Trim tiles
             if (!tiles.isEmpty()) {
                 synchronized (SpongeChunk_1_12.class) {
+                    List<TileEntity> invalidate = null;
                     Set<Map.Entry<BlockPos, TileEntity>> entryset = tiles.entrySet();
                     Iterator<Map.Entry<BlockPos, TileEntity>> iterator = entryset.iterator();
                     while (iterator.hasNext()) {
@@ -274,10 +275,14 @@ public class SpongeChunk_1_12 extends CharFaweChunk<Chunk, SpongeQueue_1_12> {
                         }
                         int k = FaweCache.CACHE_J[ly][lz][lx];
                         if (array[k] != 0) {
-                            synchronized (SpongeChunk_1_12.class) {
-                                iterator.remove();
-                                tile.getValue().invalidate();
-                            }
+                            iterator.remove();
+                            if (invalidate == null) invalidate = new ArrayList<>();
+                            invalidate.add(tile.getValue());
+                        }
+                    }
+                    if (invalidate != null) {
+                        for (TileEntity tile : invalidate) {
+                            tile.invalidate();
                         }
                     }
                 }
