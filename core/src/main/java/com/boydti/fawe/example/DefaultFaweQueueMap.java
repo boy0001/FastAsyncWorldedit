@@ -121,12 +121,13 @@ public class DefaultFaweQueueMap implements IFaweQueueMap {
     @Override
     public boolean next(int amount, long time) {
         synchronized (blocks) {
+            long nanoTime = time * 1000000;
             try {
                 boolean skip = parent.getStage() == SetQueue.QueueStage.INACTIVE;
                 int added = 0;
                 Iterator<Map.Entry<Long, FaweChunk>> iter = blocks.entrySet().iterator();
                 if (amount == 1) {
-                    long start = System.currentTimeMillis();
+                    long start = System.nanoTime();
                     do {
                         if (iter.hasNext()) {
                             FaweChunk chunk = iter.next().getValue();
@@ -140,7 +141,7 @@ public class DefaultFaweQueueMap implements IFaweQueueMap {
                         } else {
                             break;
                         }
-                    } while (System.currentTimeMillis() - start < time);
+                    } while (System.nanoTime() - start < nanoTime);
                 } else {
                     ExecutorCompletionService service = SetQueue.IMP.getCompleterService();
                     ForkJoinPool pool = SetQueue.IMP.getForkJoinPool();
@@ -160,8 +161,8 @@ public class DefaultFaweQueueMap implements IFaweQueueMap {
                     }
                     // if result, then submitted = amount
                     if (result) {
-                        long start = System.currentTimeMillis();
-                        while (System.currentTimeMillis() - start < time && result) {
+                        long start = System.nanoTime();
+                        while (System.nanoTime() - start < nanoTime && result) {
                             if (result = iter.hasNext()) {
                                 Map.Entry<Long, FaweChunk> item = iter.next();
                                 FaweChunk chunk = item.getValue();
