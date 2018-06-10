@@ -155,11 +155,12 @@ public class WeakFaweQueueMap implements IFaweQueueMap {
     public boolean next(int amount, long time) {
         synchronized (blocks) {
             try {
+                long nanoTime = time * 1000000;
                 boolean skip = parent.getStage() == SetQueue.QueueStage.INACTIVE;
                 int added = 0;
                 Iterator<Map.Entry<Long, Reference<FaweChunk>>> iter = blocks.entrySet().iterator();
                 if (amount == 1) {
-                    long start = System.currentTimeMillis();
+                    long start = System.nanoTime();
                     do {
                         if (iter.hasNext()) {
                             Map.Entry<Long, Reference<FaweChunk>> entry = iter.next();
@@ -179,7 +180,7 @@ public class WeakFaweQueueMap implements IFaweQueueMap {
                         } else {
                             break;
                         }
-                    } while (System.currentTimeMillis() - start < time);
+                    } while (System.nanoTime() - start < nanoTime);
                     return !blocks.isEmpty();
                 }
                 ExecutorCompletionService service = SetQueue.IMP.getCompleterService();
@@ -205,8 +206,8 @@ public class WeakFaweQueueMap implements IFaweQueueMap {
                 }
                 // if result, then submitted = amount
                 if (result) {
-                    long start = System.currentTimeMillis();
-                    while (System.currentTimeMillis() - start < time && result) {
+                    long start = System.nanoTime();
+                    while (System.nanoTime() - start < nanoTime && result) {
                         if (result = iter.hasNext()) {
                             Map.Entry<Long, Reference<FaweChunk>> item = iter.next();
                             Reference<FaweChunk> chunkReference = item.getValue();
