@@ -113,9 +113,10 @@ public class WorldCopyClipboard extends ReadOnlyClipboard {
                                 values.put("y", new IntTag(y));
                                 values.put("z", new IntTag(z));
                             }
-                            task.run(x, y, z, block);
+                            if (block.getId() != 0)
+                                task.run(x, y, z, block);
                         } else {
-                            task.run(x, y, z, EditSession.nullBlock);
+//                            task.run(x, y, z, EditSession.nullBlock);
                         }
                         return true;
                     }
