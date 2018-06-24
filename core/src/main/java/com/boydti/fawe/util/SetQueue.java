@@ -104,7 +104,7 @@ public class SetQueue {
                     long currentAllocate = allocate - absDiff;
 
                     if (!emptyTasks) {
-                        long taskAllocate = empty ? currentAllocate : currentAllocate >> 1;
+                        long taskAllocate = activeQueues.isEmpty() ? currentAllocate : 1 + (currentAllocate >> 1);
                         long used = 0;
                         boolean wait = false;
                         do {
