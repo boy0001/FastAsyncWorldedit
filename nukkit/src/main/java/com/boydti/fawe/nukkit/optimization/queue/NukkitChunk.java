@@ -46,9 +46,7 @@ public class NukkitChunk extends CharFaweChunk<BaseFullChunk, NukkitQueue> {
             copy.chunk = chunk;
         } else {
             copy = new NukkitChunk(getParent(), getX(), getZ(), (char[][]) MainUtil.copyNd(ids), count.clone(), air.clone(), heightMap.clone());
-            copy.biomes = biomes;
-            copy.chunk = chunk;
-            copy.biomes = biomes.clone();
+            copy.biomes = biomes != null ? biomes.clone() : null;
             copy.chunk = chunk;
         }
         return copy;

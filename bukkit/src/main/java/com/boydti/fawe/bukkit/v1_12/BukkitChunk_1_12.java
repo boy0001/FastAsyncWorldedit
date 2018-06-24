@@ -86,9 +86,7 @@ public class BukkitChunk_1_12 extends CharFaweChunk<Chunk, BukkitQueue_1_12> {
             copy.chunk = chunk;
         } else {
             copy = new BukkitChunk_1_12(getParent(), getX(), getZ(), (char[][]) MainUtil.copyNd(ids), count.clone(), air.clone(), heightMap.clone());
-            copy.biomes = biomes;
-            copy.chunk = chunk;
-            copy.biomes = biomes.clone();
+            copy.biomes = biomes != null ? biomes.clone() : null;
             copy.chunk = chunk;
         }
         if (sectionPalettes != null) {
@@ -460,8 +458,10 @@ public class BukkitChunk_1_12 extends CharFaweChunk<Chunk, BukkitQueue_1_12> {
                 }
                 byte[] currentBiomes = nmsChunk.getBiomeIndex();
                 for (int i = 0 ; i < this.biomes.length; i++) {
-                    if (this.biomes[i] != 0) {
-                        currentBiomes[i] = this.biomes[i];
+                    byte biome = this.biomes[i];
+                    if (biome != 0) {
+                        if (biome == -1) biome = 0;
+                        currentBiomes[i] = biome;
                     }
                 }
             }

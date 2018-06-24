@@ -5,11 +5,8 @@ import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.util.MathMan;
 import com.sk89q.jnbt.CompoundTag;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+
+import java.util.*;
 
 public abstract class CharFaweChunk<T, V extends FaweQueue> extends FaweChunk<T> {
 
@@ -170,7 +167,7 @@ public abstract class CharFaweChunk<T, V extends FaweQueue> extends FaweChunk<T>
 
     @Override
     public Set<CompoundTag> getEntities() {
-        return entities == null ? new HashSet<CompoundTag>() : entities;
+        return entities == null ? Collections.emptySet() : entities;
     }
 
     @Override
@@ -350,10 +347,11 @@ public abstract class CharFaweChunk<T, V extends FaweQueue> extends FaweChunk<T>
     }
 
     @Override
-    public void setBiome(final int x, final int z, final byte biome) {
+    public void setBiome(final int x, final int z, byte biome) {
         if (this.biomes == null) {
             this.biomes = new byte[256];
         }
+        if (biome == 0) biome = -1;
         biomes[((z & 15) << 4) + (x & 15)] = biome;
     }
 

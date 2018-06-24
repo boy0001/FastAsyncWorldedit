@@ -58,7 +58,7 @@ public class BukkitChunk_All extends CharFaweChunk<Chunk, BukkitQueue_All> {
             copy.biomes = biomes;
         } else {
             copy = new BukkitChunk_All(getParent(), getX(), getZ(), (char[][]) MainUtil.copyNd(ids), count.clone(), air.clone(), heightMap.clone());
-            copy.biomes = biomes.clone();
+            copy.biomes = biomes != null ? biomes.clone() : null;
         }
         copy.chunk = chunk;
         return copy;

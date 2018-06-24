@@ -27,7 +27,7 @@ public class SimpleCharFaweChunk extends CharFaweChunk {
             copy.biomes = biomes;
         } else {
             copy = new SimpleCharFaweChunk(getParent(), getX(), getZ(), (char[][]) MainUtil.copyNd(ids), count.clone(), air.clone(), heightMap.clone());
-            copy.biomes = biomes.clone();
+            copy.biomes = biomes != null ? biomes.clone() : null;
         }
         return copy;
     }

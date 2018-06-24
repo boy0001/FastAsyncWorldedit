@@ -334,8 +334,10 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
             if (this.biomes != null) {
                 byte[] currentBiomes = nmsChunk.getBiomeArray();
                 for (int i = 0 ; i < this.biomes.length; i++) {
-                    if (this.biomes[i] != 0) {
-                        currentBiomes[i] = this.biomes[i];
+                    byte biome = this.biomes[i];
+                    if (biome != 0) {
+                        if (biome == -1) biome = 0;
+                        currentBiomes[i] = biome;
                     }
                 }
             }
