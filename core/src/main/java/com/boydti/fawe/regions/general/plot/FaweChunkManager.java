@@ -47,21 +47,23 @@ public class FaweChunkManager extends ChunkManager {
         TaskManager.IMP.async(new Runnable() {
             @Override
             public void run() {
-                EditSession sessionA = new EditSessionBuilder(pos1.getWorld()).checkMemory(false).fastmode(true).limitUnlimited().changeSetNull().autoQueue(false).build();
-                EditSession sessionB = new EditSessionBuilder(pos3.getWorld()).checkMemory(false).fastmode(true).limitUnlimited().changeSetNull().autoQueue(false).build();
-                CuboidRegion regionA = new CuboidRegion(new Vector(pos1.getX(), pos1.getY(), pos1.getZ()), new Vector(pos2.getX(), pos2.getY(), pos2.getZ()));
-                CuboidRegion regionB = new CuboidRegion(new Vector(pos3.getX(), pos3.getY(), pos3.getZ()), new Vector(pos4.getX(), pos4.getY(), pos4.getZ()));
-                ForwardExtentCopy copyA = new ForwardExtentCopy(sessionA, regionA, sessionB, regionB.getMinimumPoint());
-                ForwardExtentCopy copyB = new ForwardExtentCopy(sessionB, regionB, sessionA, regionA.getMinimumPoint());
-                try {
-                    Operations.completeLegacy(copyA);
-                    Operations.completeLegacy(copyB);
-                    sessionA.flushQueue();
-                    sessionB.flushQueue();
-                } catch (MaxChangedBlocksException e) {
-                    e.printStackTrace();
+                synchronized (FaweChunkManager.class) {
+                    EditSession sessionA = new EditSessionBuilder(pos1.getWorld()).checkMemory(false).fastmode(true).limitUnlimited().changeSetNull().autoQueue(false).build();
+                    EditSession sessionB = new EditSessionBuilder(pos3.getWorld()).checkMemory(false).fastmode(true).limitUnlimited().changeSetNull().autoQueue(false).build();
+                    CuboidRegion regionA = new CuboidRegion(new Vector(pos1.getX(), pos1.getY(), pos1.getZ()), new Vector(pos2.getX(), pos2.getY(), pos2.getZ()));
+                    CuboidRegion regionB = new CuboidRegion(new Vector(pos3.getX(), pos3.getY(), pos3.getZ()), new Vector(pos4.getX(), pos4.getY(), pos4.getZ()));
+                    ForwardExtentCopy copyA = new ForwardExtentCopy(sessionA, regionA, sessionB, regionB.getMinimumPoint());
+                    ForwardExtentCopy copyB = new ForwardExtentCopy(sessionB, regionB, sessionA, regionA.getMinimumPoint());
+                    try {
+                        Operations.completeLegacy(copyA);
+                        Operations.completeLegacy(copyB);
+                        sessionA.flushQueue();
+                        sessionB.flushQueue();
+                    } catch (MaxChangedBlocksException e) {
+                        e.printStackTrace();
+                    }
+                    TaskManager.IMP.task(whenDone);
                 }
-                TaskManager.IMP.task(whenDone);
             }
         });
     }
@@ -71,15 +73,17 @@ public class FaweChunkManager extends ChunkManager {
         TaskManager.IMP.async(new Runnable() {
             @Override
             public void run() {
-                EditSession from = new EditSessionBuilder(pos1.getWorld()).checkMemory(false).fastmode(true).limitUnlimited().changeSetNull().autoQueue(false).build();
-                EditSession to = new EditSessionBuilder(pos3.getWorld()).checkMemory(false).fastmode(true).limitUnlimited().changeSetNull().autoQueue(false).build();
-                CuboidRegion region = new CuboidRegion(new Vector(pos1.getX(), pos1.getY(), pos1.getZ()), new Vector(pos2.getX(), pos2.getY(), pos2.getZ()));
-                ForwardExtentCopy copy = new ForwardExtentCopy(from, region, to, new Vector(pos3.getX(), pos3.getY(), pos3.getZ()));
-                try {
-                    Operations.completeLegacy(copy);
-                    to.flushQueue();
-                } catch (MaxChangedBlocksException e) {
-                    e.printStackTrace();
+                synchronized (FaweChunkManager.class) {
+                    EditSession from = new EditSessionBuilder(pos1.getWorld()).checkMemory(false).fastmode(true).limitUnlimited().changeSetNull().autoQueue(false).build();
+                    EditSession to = new EditSessionBuilder(pos3.getWorld()).checkMemory(false).fastmode(true).limitUnlimited().changeSetNull().autoQueue(false).build();
+                    CuboidRegion region = new CuboidRegion(new Vector(pos1.getX(), pos1.getY(), pos1.getZ()), new Vector(pos2.getX(), pos2.getY(), pos2.getZ()));
+                    ForwardExtentCopy copy = new ForwardExtentCopy(from, region, to, new Vector(pos3.getX(), pos3.getY(), pos3.getZ()));
+                    try {
+                        Operations.completeLegacy(copy);
+                        to.flushQueue();
+                    } catch (MaxChangedBlocksException e) {
+                        e.printStackTrace();
+                    }
                 }
                 TaskManager.IMP.task(whenDone);
             }
@@ -92,12 +96,14 @@ public class FaweChunkManager extends ChunkManager {
         TaskManager.IMP.async(new Runnable() {
             @Override
             public void run() {
-                EditSession editSession = new EditSessionBuilder(pos1.getWorld()).checkMemory(false).fastmode(true).limitUnlimited().changeSetNull().autoQueue(false).build();
-                World world = editSession.getWorld();
-                CuboidRegion region = new CuboidRegion(new Vector(pos1.getX(), pos1.getY(), pos1.getZ()), new Vector(pos2.getX(), pos2.getY(), pos2.getZ()));
-                world.regenerate(region, editSession);
-                editSession.flushQueue();
-                TaskManager.IMP.task(whenDone);
+                synchronized (FaweChunkManager.class) {
+                    EditSession editSession = new EditSessionBuilder(pos1.getWorld()).checkMemory(false).fastmode(true).limitUnlimited().changeSetNull().autoQueue(false).build();
+                    World world = editSession.getWorld();
+                    CuboidRegion region = new CuboidRegion(new Vector(pos1.getX(), pos1.getY(), pos1.getZ()), new Vector(pos2.getX(), pos2.getY(), pos2.getZ()));
+                    world.regenerate(region, editSession);
+                    editSession.flushQueue();
+                    TaskManager.IMP.task(whenDone);
+                }
             }
         });
         return true;
