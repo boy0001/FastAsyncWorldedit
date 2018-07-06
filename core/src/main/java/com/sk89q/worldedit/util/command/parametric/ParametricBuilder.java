@@ -183,6 +183,9 @@ public class ParametricBuilder {
                 if (processor != null) {
                     callable = new ProcessedCallable(callable, processor);
                 }
+                else if (object instanceof CallableProcessor) {
+                    callable = new ProcessedCallable(callable, (CallableProcessor) object);
+                }
                 if (object instanceof MethodCommands) {
                     ((MethodCommands) object).register(method, callable, dispatcher);
                 }
