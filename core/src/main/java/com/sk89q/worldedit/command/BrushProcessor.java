@@ -19,6 +19,10 @@ public class BrushProcessor implements CallableProcessor<BrushSettings> {
         this.worldEdit = worldEdit;
     }
 
+    public WorldEdit getWorldEdit() {
+        return worldEdit;
+    }
+
     @Override
     public BrushSettings process(CommandLocals locals, BrushSettings settings) throws Command.CommandException, WorldEditException {
         Actor actor = locals.get(Actor.class);
