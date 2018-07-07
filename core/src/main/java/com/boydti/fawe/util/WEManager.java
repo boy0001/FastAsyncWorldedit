@@ -69,7 +69,7 @@ public class WEManager {
 
     @Deprecated
     public Region[] getMask(final FawePlayer<?> player) {
-        return getMask(player, FaweMaskManager.MaskType.MEMBER);
+        return getMask(player, FaweMaskManager.MaskType.getDefaultMaskType());
     }
 
     public boolean isIn(int x, int y, int z, Region region) {
@@ -131,7 +131,7 @@ public class WEManager {
         for (final FaweMaskManager manager : managers) {
             if (player.hasPermission("fawe." + manager.getKey())) {
                 try {
-                    final FaweMask mask = manager.getMask(player, FaweMaskManager.MaskType.MEMBER);
+                    final FaweMask mask = manager.getMask(player, FaweMaskManager.MaskType.getDefaultMaskType());
                     if (mask != null) {
                         regions.add(mask.getRegion());
                         masks.add(mask);
