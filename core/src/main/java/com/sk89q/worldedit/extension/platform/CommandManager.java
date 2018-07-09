@@ -260,6 +260,7 @@ public final class CommandManager {
                 .registerMethods(new SelectionCommands(worldEdit))
                 .registerMethods(new SnapshotUtilCommands(worldEdit))
                 .registerMethods(new BrushOptionsCommands(worldEdit))
+                .registerMethods(new BrushCommands(worldEdit))
                 .registerMethods(new ToolCommands(worldEdit))
                 .registerMethods(new UtilityCommands(worldEdit))
                 .registerSubMethods(new WorldEditCommands(worldEdit))
