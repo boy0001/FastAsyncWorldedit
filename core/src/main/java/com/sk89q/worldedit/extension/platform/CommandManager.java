@@ -33,34 +33,9 @@ import com.boydti.fawe.util.chat.UsageMessage;
 import com.boydti.fawe.wrappers.FakePlayer;
 import com.boydti.fawe.wrappers.LocationMaskedPlayerWrapper;
 import com.google.common.base.Joiner;
-import com.sk89q.minecraft.util.commands.CommandContext;
-import com.sk89q.minecraft.util.commands.CommandException;
-import com.sk89q.minecraft.util.commands.CommandLocals;
-import com.sk89q.minecraft.util.commands.CommandPermissionsException;
-import com.sk89q.worldedit.EditSession;
-import com.sk89q.worldedit.LocalConfiguration;
-import com.sk89q.worldedit.LocalSession;
-import com.sk89q.worldedit.WorldEdit;
-import com.sk89q.worldedit.command.BiomeCommands;
-import com.sk89q.worldedit.command.BrushCommands;
-import com.sk89q.worldedit.command.BrushOptionsCommands;
-import com.sk89q.worldedit.command.BrushProcessor;
-import com.sk89q.worldedit.command.ChunkCommands;
-import com.sk89q.worldedit.command.ClipboardCommands;
-import com.sk89q.worldedit.command.GenerationCommands;
-import com.sk89q.worldedit.command.HistoryCommands;
-import com.sk89q.worldedit.command.NavigationCommands;
-import com.sk89q.worldedit.command.OptionsCommands;
-import com.sk89q.worldedit.command.RegionCommands;
-import com.sk89q.worldedit.command.SchematicCommands;
-import com.sk89q.worldedit.command.ScriptingCommands;
-import com.sk89q.worldedit.command.SelectionCommands;
-import com.sk89q.worldedit.command.SnapshotCommands;
-import com.sk89q.worldedit.command.SnapshotUtilCommands;
-import com.sk89q.worldedit.command.SuperPickaxeCommands;
-import com.sk89q.worldedit.command.ToolCommands;
-import com.sk89q.worldedit.command.UtilityCommands;
-import com.sk89q.worldedit.command.WorldEditCommands;
+import com.sk89q.minecraft.util.commands.*;
+import com.sk89q.worldedit.*;
+import com.sk89q.worldedit.command.*;
 import com.sk89q.worldedit.command.argument.ReplaceParser;
 import com.sk89q.worldedit.command.argument.TreeGeneratorParser;
 import com.sk89q.worldedit.command.composition.ApplyCommand;
@@ -72,11 +47,7 @@ import com.sk89q.worldedit.event.platform.CommandEvent;
 import com.sk89q.worldedit.event.platform.CommandSuggestionEvent;
 import com.sk89q.worldedit.function.factory.Deform;
 import com.sk89q.worldedit.function.factory.Deform.Mode;
-import com.sk89q.worldedit.internal.command.ActorAuthorizer;
-import com.sk89q.worldedit.internal.command.CommandLoggingHandler;
-import com.sk89q.worldedit.internal.command.UserCommandCompleter;
-import com.sk89q.worldedit.internal.command.WorldEditBinding;
-import com.sk89q.worldedit.internal.command.WorldEditExceptionConverter;
+import com.sk89q.worldedit.internal.command.*;
 import com.sk89q.worldedit.session.request.Request;
 import com.sk89q.worldedit.util.auth.AuthorizationException;
 import com.sk89q.worldedit.util.command.CommandCallable;
@@ -91,6 +62,7 @@ import com.sk89q.worldedit.util.command.parametric.ParametricBuilder;
 import com.sk89q.worldedit.util.eventbus.Subscribe;
 import com.sk89q.worldedit.util.logging.DynamicStreamHandler;
 import com.sk89q.worldedit.util.logging.LogFormat;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
@@ -102,7 +74,6 @@ import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.sk89q.worldedit.util.command.composition.LegacyCommandAdapter.adapt;
@@ -128,6 +99,7 @@ public final class CommandManager {
 
     private ParametricBuilder builder;
     private Map<Object, String[]> methodMap;
+    private Map<CommandCallable, String[][]> commandMap;
 
     private static CommandManager INSTANCE;
 
@@ -164,6 +136,7 @@ public final class CommandManager {
         builder.addInvokeListener(new CommandLoggingHandler(worldEdit, commandLog));
 
         this.methodMap = new ConcurrentHashMap<>();
+        this.commandMap = new ConcurrentHashMap<>();
 
         try {
             Class.forName("com.intellectualcrafters.plot.PS");
@@ -191,17 +164,58 @@ public final class CommandManager {
      */
     public void registerCommands(Object clazz, String... aliases) {
         if (platform != null) {
-            DispatcherNode graph = new CommandGraph().builder(builder).commands();
             if (aliases.length == 0) {
-                graph = graph.registerMethods(clazz);
+                builder.registerMethodsAsCommands(dispatcher, clazz);
             } else {
-                graph = graph.group(aliases).registerMethods(clazz).parent();
+                DispatcherNode graph = new CommandGraph().builder(builder).commands();
+                graph = graph.registerMethods(clazz);
+                dispatcher.registerCommand(graph.graph().getDispatcher(), aliases);
             }
-            Dispatcher dispatcher = graph.graph().getDispatcher();
             platform.registerCommands(dispatcher);
         } else {
             methodMap.put(clazz, aliases);
         }
+    }
+
+    /**
+     * Create a command with the provided aliases and register all methods of the class as sub commands.<br>
+     * - You should try to register commands during startup
+     *
+     * @param clazz   The class containing all the sub command methods
+     * @param aliases The aliases to give the command
+     */
+    public void registerCommands(Object clazz, Object processor, String... aliases) {
+        if (platform != null) {
+            if (aliases.length == 0) {
+                builder.registerMethodsAsCommands(dispatcher, clazz);
+            } else {
+                DispatcherNode graph = new CommandGraph().builder(builder).commands();
+                graph = graph.registerMethods(clazz);
+                dispatcher.registerCommand(graph.graph().getDispatcher(), aliases);
+            }
+            platform.registerCommands(dispatcher);
+        } else {
+            methodMap.put(clazz, aliases);
+        }
+    }
+
+    public void registerCommand(String[] aliases, Command command, CommandCallable callable) {
+        if (platform != null) {
+            if (aliases.length == 0) {
+                dispatcher.registerCommand(callable, command.aliases());
+            } else {
+                DispatcherNode graph = new CommandGraph().builder(builder).commands();
+                graph = graph.register(callable, command.aliases());
+                dispatcher.registerCommand(graph.graph().getDispatcher(), aliases);
+            }
+            platform.registerCommands(dispatcher);
+        } else {
+            commandMap.putIfAbsent(callable, new String[][] {aliases, command.aliases()});
+        }
+    }
+
+    public ParametricBuilder getBuilder() {
+        return builder;
     }
 
     /**
@@ -219,7 +233,16 @@ public final class CommandManager {
                 graph = graph.group(aliases).registerMethods(entry.getKey()).parent();
             }
         }
-        methodMap.clear();
+
+        for (Map.Entry<CommandCallable, String[][]> entry : commandMap.entrySet()) {
+            String[][] aliases = entry.getValue();
+            CommandCallable callable = entry.getKey();
+            if (aliases[0].length == 0) {
+                graph = graph.register(callable, aliases[1]);
+            } else {
+                graph = graph.group(aliases[0]).register(callable, aliases[1]).parent();
+            }
+        }
 
         dispatcher = graph
                 .group("/anvil")
@@ -245,7 +268,6 @@ public final class CommandManager {
                 .groupAndDescribe(BrushCommands.class)
                 .registerMethods(new ToolCommands(worldEdit))
                 .registerMethods(new BrushOptionsCommands(worldEdit))
-                .registerMethods(new BrushCommands(worldEdit), new BrushProcessor(worldEdit))
                 .register(adapt(new ShapedBrushCommand(new DeformCommand(), "worldedit.brush.deform")), "deform")
                 .register(adapt(new ShapedBrushCommand(new ApplyCommand(new ReplaceParser(), "Set all blocks within region"), "worldedit.brush.set")), "set")
                 .register(adapt(new ShapedBrushCommand(new PaintCommand(), "worldedit.brush.paint")), "paint")

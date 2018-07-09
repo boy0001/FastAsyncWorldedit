@@ -60,9 +60,19 @@ public class SimpleDispatcher implements Dispatcher {
         // Check for replacements
         for (String a : alias) {
             String lower = a.toLowerCase();
-            if (commands.containsKey(lower)) {
-                Fawe.debug("Replacing commands is currently undefined behavior: " + StringMan.getString(alias));
-                return;
+            CommandMapping existing = commands.get(lower);
+            if (existing != null) {
+                CommandCallable existingCallable = existing.getCallable();
+                if (existingCallable instanceof Dispatcher && callable instanceof Dispatcher) {
+                    Dispatcher existingDispatcher = (Dispatcher) existingCallable;
+                    Dispatcher newDispatcher = (Dispatcher) callable;
+                    for (CommandMapping add : newDispatcher.getCommands()) {
+                        existingDispatcher.registerCommand(add.getCallable(), add.getAllAliases());
+                    }
+                } else {
+                    Fawe.debug("Replacing commands is currently undefined behavior: " + StringMan.getString(alias));
+                    return;
+                }
             }
         }
 

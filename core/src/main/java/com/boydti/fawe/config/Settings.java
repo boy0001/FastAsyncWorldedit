@@ -67,6 +67,8 @@ public class Settings extends Config {
     public HISTORY HISTORY;
     @Create
     public PATHS PATHS;
+    @Create
+    public REGION_RESTRICTIONS_OPTIONS REGION_RESTRICTIONS_OPTIONS;
 
     @Comment("Paths for various directories")
     public static final class PATHS {
@@ -74,6 +76,8 @@ public class Settings extends Config {
         @Comment({
                 "Put any minecraft or mod jars for FAWE to be aware of block textures",
         })
+        public String PATTERNS = "patterns";
+        public String MASKS = "masks";
         public String TEXTURES = "textures";
         public String HEIGHTMAP = "heightmap";
         public String HISTORY = "history";
@@ -84,6 +88,16 @@ public class Settings extends Config {
         public String CLIPBOARD = "clipboard";
         @Comment("Each player has their own sub directory for schematics")
         public boolean PER_PLAYER_SCHEMATICS = true;
+    }
+
+    @Comment("Region restriction settings")
+    public static final class REGION_RESTRICTIONS_OPTIONS {
+        @Comment({
+                "What type of users are allowed to WorldEdit in a region",
+                " - MEMBER = Players added to a region",
+                " - OWNER = Players who own the region"
+        })
+        public String MODE = "MEMBER";
     }
 
 
@@ -334,6 +348,12 @@ public class Settings extends Config {
                 "Might cause client-side FPS lagg in some situations"
         })
         public boolean KEEP_ENTITIES_IN_BLOCKS = false;
+
+        @Comment({
+                "[SAFE] Experimental scripting support for Java 9",
+                " - "
+        })
+        public boolean MODERN_CRAFTSCRIPTS = false;
     }
 
     public static class WEB {
