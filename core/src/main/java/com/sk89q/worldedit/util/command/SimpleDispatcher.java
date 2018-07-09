@@ -69,16 +69,13 @@ public class SimpleDispatcher implements Dispatcher {
                     for (CommandMapping add : newDispatcher.getCommands()) {
                         existingDispatcher.registerCommand(add.getCallable(), add.getAllAliases());
                     }
+                    continue;
                 } else {
                     Fawe.debug("Replacing commands is currently undefined behavior: " + StringMan.getString(alias));
-                    return;
+                    continue;
                 }
             }
-        }
-
-        for (String a : alias) {
-            String lower = a.toLowerCase();
-            commands.put(lower, mapping);
+            commands.putIfAbsent(lower, mapping);
         }
     }
 
