@@ -19,6 +19,7 @@ import com.boydti.fawe.object.mask.MaskedTargetBlock;
 import com.boydti.fawe.object.pattern.PatternTraverser;
 import com.boydti.fawe.util.EditSessionBuilder;
 import com.boydti.fawe.util.MaskTraverser;
+import com.boydti.fawe.util.StringMan;
 import com.boydti.fawe.util.TaskManager;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -441,12 +442,17 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
         if (brush == null) return false;
 
         EditSession editSession = session.createEditSession(player);
+        if (current.setWorld(editSession.getWorld().getName()) && !current.canUse(player)) {
+            BBC.NO_PERM.send(player, StringMan.join(current.getPermissions(), ","));
+            return false;
+        }
+
         Vector target = getPosition(editSession, player);
 
         if (target == null) {
             editSession.cancel();
             BBC.NO_BLOCK.send(player);
-            return true;
+            return false;
         }
         BlockBag bag = session.getBlockBag(player);
         Request.request().setEditSession(editSession);
