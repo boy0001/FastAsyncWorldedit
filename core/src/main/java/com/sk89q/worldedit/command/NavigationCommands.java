@@ -81,9 +81,12 @@ public class NavigationCommands {
     )
     @CommandPermissions("worldedit.navigation.ascend")
     public void ascend(Player player, @Optional("1") int levelsToAscend) throws WorldEditException {
-        int ascentLevels = 1;
-        while (player.ascendLevel() && levelsToAscend != ascentLevels) {
+        int ascentLevels = 0;
+        while (player.ascendLevel()) {
             ++ascentLevels;
+            if (levelsToAscend == ascentLevels) {
+                break;
+            }
         }
         if (ascentLevels == 0) {
             BBC.ASCEND_FAIL.send(player);
@@ -105,9 +108,12 @@ public class NavigationCommands {
     )
     @CommandPermissions("worldedit.navigation.descend")
     public void descend(Player player, @Optional("1") int levelsToDescend) throws WorldEditException {
-        int descentLevels = 1;
-        while (player.descendLevel() && levelsToDescend != descentLevels) {
+        int descentLevels = 0;
+        while (player.descendLevel()) {
             ++descentLevels;
+            if (levelsToDescend == descentLevels) {
+                break;
+            }
         }
         if (descentLevels == 0) {
             BBC.DESCEND_FAIL.send(player);
