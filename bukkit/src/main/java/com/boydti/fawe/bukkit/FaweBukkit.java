@@ -589,11 +589,12 @@ public class FaweBukkit implements IFawe, Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
-        FawePlayer fp = FawePlayer.wrap(player);
+        String name = player.getName();
+        FawePlayer fp = Fawe.get().getCachedPlayer(name);
         if (fp != null) {
             fp.unregister();
+            Fawe.get().unregister(name);
         }
-        Fawe.get().unregister(event.getPlayer().getName());
     }
 
     @Override
