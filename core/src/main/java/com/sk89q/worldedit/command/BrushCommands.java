@@ -221,15 +221,16 @@ public class BrushCommands extends BrushProcessor {
             help = "Create a hanging line between two points.\n" +
                     "The lengthFactor controls how long the line is\n" +
                     "The -h flag creates only a shell\n" +
-                    "The -s flag selects the clicked point after drawing\n",
+                    "The -s flag selects the clicked point after drawing\n" +
+                    "The -d flag sags the catenary toward the facing direction\n",
             min = 1,
             max = 3
     )
     @CommandPermissions("worldedit.brush.spline")
-    public BrushSettings catenaryBrush(Player player, EditSession editSession, LocalSession session, Pattern fill, @Optional("1.2") @Range(min=1) double lengthFactor, @Optional("0") double radius, @Switch('h') boolean shell, @Switch('s') boolean select, CommandContext context) throws WorldEditException {
+    public BrushSettings catenaryBrush(Player player, EditSession editSession, LocalSession session, Pattern fill, @Optional("1.2") @Range(min=1) double lengthFactor, @Optional("0") double radius, @Switch('h') boolean shell, @Switch('s') boolean select, @Switch('d') boolean facingDirection, CommandContext context) throws WorldEditException {
         getWorldEdit().checkMaxBrushRadius(radius);
         return set(session, context,
-                new CatenaryBrush(shell, select, lengthFactor))
+                new CatenaryBrush(shell, select, facingDirection, lengthFactor))
                 .setSize(radius)
                 .setFill(fill);
     }

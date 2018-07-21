@@ -7,18 +7,24 @@ import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.command.tool.brush.Brush;
 import com.sk89q.worldedit.function.pattern.Pattern;
+import com.sk89q.worldedit.util.Location;
+
 import java.util.Arrays;
 import java.util.List;
 
 public class CatenaryBrush implements Brush, ResettableTool {
 
-    private final boolean shell, select;
+    private final boolean shell, select, direction;
     private final double slack;
-    private Vector pos1;
 
-    public CatenaryBrush(boolean shell, boolean select, double lengthFactor) {
+    private Vector pos1;
+    private Vector pos2;
+    private Vector vertex;
+
+    public CatenaryBrush(boolean shell, boolean select, boolean direction, double lengthFactor) {
         this.shell = shell;
         this.select = select;
+        this.direction = direction;
         this.slack = lengthFactor;
     }
 
@@ -32,8 +38,21 @@ public class CatenaryBrush implements Brush, ResettableTool {
             }
             return;
         }
-        Vector vertex = getVertex(pos1, pos2, slack);
+        if (this.vertex == null) {
+            vertex = getVertex(pos1, pos2, slack);
+            if (this.direction) {
+                BBC.BRUSH_CATENARY_DIRECTION.send(editSession.getPlayer(), 2);
+                return;
+            }
+        } else if (this.direction) {
+            Location loc = editSession.getPlayer().getPlayer().getLocation();
+            Vector facing = loc.getDirection().normalize();
+            Vector midpoint = pos1.add(pos2).divide(2);
+            Vector offset = midpoint.subtract(vertex);
+            vertex = midpoint.add(facing.multiply(offset.length()));
+        }
         List<Vector> nodes = Arrays.asList(pos1, vertex, pos2);
+        vertex = null;
         editSession.drawSpline(pattern, nodes, 0, 0, 0, 10, size, !shell);
         if (!visual) {
             BBC.BRUSH_LINE_SECONDARY.send(editSession.getPlayer());
