@@ -275,15 +275,20 @@ public class SessionManager {
      */
     public synchronized void remove(SessionOwner owner) {
         checkNotNull(owner);
-        save(sessions.remove(getKey(owner)));
+        SessionHolder session = sessions.remove(getKey(owner));
+        if (session != null) {
+            save(session);
+        }
     }
 
     public synchronized void forget(SessionOwner owner) {
         checkNotNull(owner);
         UUID key = getKey(owner);
         SessionHolder holder = sessions.remove(key);
-        softSessions.put(key, new SoftReference(holder));
-        save(holder);
+        if (holder != null) {
+            softSessions.put(key, new SoftReference(holder));
+            save(holder);
+        }
     }
 
     /**
