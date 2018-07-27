@@ -84,7 +84,9 @@ public class FaweLocalBlockQueue extends LocalBlockQueue {
             lastBiome = biome;
             this.biome = Biomes.findBiomeByName(biomes, biome, reg);
         }
-        return IMP.setBiome(x, z, this.biome);
+        if (this.biome != null)
+            return IMP.setBiome(x, z, this.biome);
+        return false;
     }
 
     @Override
