@@ -321,16 +321,16 @@ public class AnvilCommands {
         if (result != null) player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(result.getTotal()));
     }
 
-    @Command(
-            aliases = {"debugfixroads", },
-            desc = "debug - do not use"
-    )
-    @CommandPermissions("worldedit.anvil.debugfixroads")
-    public void debugfixroads(Player player, String folder) throws WorldEditException {
-        DebugFixP2Roads filter = new DebugFixP2Roads();
-        DebugFixP2Roads result = runWithWorld(player, folder, filter, true, true);
-        if (result != null) player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(result.getTotal()));
-    }
+//    @Command(
+//            aliases = {"debugfixroads", },
+//            desc = "debug - do not use"
+//    )
+//    @CommandPermissions("worldedit.anvil.debugfixroads")
+//    public void debugfixroads(Player player, String folder) throws WorldEditException {
+//        DebugFixP2Roads filter = new DebugFixP2Roads();
+//        DebugFixP2Roads result = runWithWorld(player, folder, filter, true, true);
+//        if (result != null) player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(result.getTotal()));
+//    }
 
     @Command(
             aliases = {"replaceallpattern", "reap", "repallpat"},
