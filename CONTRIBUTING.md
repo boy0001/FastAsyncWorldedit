@@ -1,2 +1,2 @@
 ### Bugs
-Please provide a console log and your fawe configuration.
+Please provide a proper title, description, console log, your FAWE configuration, and info about replicating the issue on your issue post.
