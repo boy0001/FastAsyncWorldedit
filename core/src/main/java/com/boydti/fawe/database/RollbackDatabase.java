@@ -36,6 +36,8 @@ public class RollbackDatabase extends AsyncNotifyQueue {
     //    private String GET_EDITS_POINT;
     private String GET_EDITS;
     private String GET_EDITS_USER;
+    private String GET_EDITS_ASC;
+    private String GET_EDITS_USER_ASC;
     private String DELETE_EDITS_USER;
     private String DELETE_EDIT_USER;
     private String PURGE;
@@ -59,6 +61,8 @@ public class RollbackDatabase extends AsyncNotifyQueue {
 //        GET_EDITS_POINT = "SELECT `player`,`id` FROM `" + prefix + "edits` WHERE `x2`>=? AND `x1`<=? AND `y2`>=? AND `y1`<=? AND `z2`>=? AND `z1`<=?";
         GET_EDITS = "SELECT `player`,`id` FROM `" + prefix + "edits` WHERE `x2`>=? AND `x1`<=? AND `y2`>=? AND `y1`<=? AND `z2`>=? AND `z1`<=? AND `time`>? ORDER BY `time` DESC, `id` DESC";
         GET_EDITS_USER = "SELECT `player`,`id` FROM `" + prefix + "edits` WHERE `x2`>=? AND `x1`<=? AND `y2`>=? AND `y1`<=? AND `z2`>=? AND `z1`<=? AND `time`>? AND `player`=? ORDER BY `time` DESC, `id` DESC";
+        GET_EDITS_ASC = "SELECT `player`,`id` FROM `" + prefix + "edits` WHERE `x2`>=? AND `x1`<=? AND `y2`>=? AND `y1`<=? AND `z2`>=? AND `z1`<=? AND `time`>? ORDER BY `time` ASC, `id` ASC";
+        GET_EDITS_USER_ASC = "SELECT `player`,`id` FROM `" + prefix + "edits` WHERE `x2`>=? AND `x1`<=? AND `y2`>=? AND `y1`<=? AND `z2`>=? AND `z1`<=? AND `time`>? AND `player`=? ORDER BY `time` ASC, `id` ASC";
         DELETE_EDITS_USER = "DELETE FROM `" + prefix + "edits` WHERE `x2`>=? AND `x1`<=? AND `y2`>=? AND `y1`<=? AND `z2`>=? AND `z1`<=? AND `time`>? AND `player`=?";
         DELETE_EDIT_USER = "DELETE FROM `" + prefix + "edits` WHERE `player`=? AND `id`=?";
         init();
@@ -122,12 +126,13 @@ public class RollbackDatabase extends AsyncNotifyQueue {
         });
     }
 
-    public void getPotentialEdits(final UUID uuid, final long minTime, final Vector pos1, final Vector pos2, final RunnableVal<DiskStorageHistory> onEach, final Runnable whenDone, final boolean delete) {
+    public void getPotentialEdits(final UUID uuid, final long minTime, final Vector pos1, final Vector pos2, final RunnableVal<DiskStorageHistory> onEach, final Runnable whenDone, final boolean delete, final boolean ascending) {
         final World world = FaweAPI.getWorld(this.worldName);
         addTask(new Runnable() {
             @Override
             public void run() {
-                try (PreparedStatement stmt = connection.prepareStatement(uuid == null ? GET_EDITS : GET_EDITS_USER)) {
+                String stmtStr = ascending ? (uuid == null ? GET_EDITS_ASC : GET_EDITS_USER_ASC) : (uuid == null ? GET_EDITS : GET_EDITS_USER);
+                try (PreparedStatement stmt = connection.prepareStatement(stmtStr)) {
                     stmt.setInt(1, pos1.getBlockX());
                     stmt.setInt(2, pos2.getBlockX());
                     stmt.setByte(3, (byte) (pos1.getBlockY() - 128));

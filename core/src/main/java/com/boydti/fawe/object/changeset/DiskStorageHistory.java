@@ -143,8 +143,17 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
         deleteFiles();
     }
 
+    public void redo(FawePlayer fp, Region[] regions) {
+        EditSession session = toEditSession(fp, regions);
+        session.redo(session);
+    }
+
     public void undo(FawePlayer fp) {
         undo(fp, null);
+    }
+
+    public void redo(FawePlayer fp) {
+        redo(fp, null);
     }
 
     public UUID getUUID() {

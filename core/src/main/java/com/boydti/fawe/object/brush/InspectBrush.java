@@ -105,7 +105,7 @@ public class InspectBrush extends BrushTool implements DoubleActionTraceTool {
             public void run() {
                 BBC.TOOL_INSPECT_INFO_FOOTER.send(fp, count);
             }
-        }, false);
+        }, false, false);
         return true;
     }
 
