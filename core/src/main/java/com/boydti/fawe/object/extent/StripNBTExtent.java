@@ -6,9 +6,14 @@ import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
+import com.sk89q.worldedit.entity.BaseEntity;
+import com.sk89q.worldedit.entity.Entity;
 import com.sk89q.worldedit.extent.AbstractDelegateExtent;
 import com.sk89q.worldedit.extent.Extent;
+import com.sk89q.worldedit.util.Location;
+import com.sk89q.worldedit.world.NbtValued;
 
+import javax.annotation.Nullable;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -37,7 +42,13 @@ public class StripNBTExtent extends AbstractDelegateExtent {
         return super.setBlock(x, y, z, stripNBT(block));
     }
 
-    public BaseBlock stripNBT(BaseBlock block) {
+    @Nullable
+    @Override
+    public Entity createEntity(Location location, BaseEntity entity) {
+        return super.createEntity(location, stripNBT(entity));
+    }
+
+    public <T extends NbtValued> T stripNBT(T block) {
         if (!block.hasNbtData()) return block;
         CompoundTag nbt = block.getNbtData();
         Map<String, Tag> value = nbt.getValue();

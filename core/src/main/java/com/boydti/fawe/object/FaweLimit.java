@@ -71,7 +71,7 @@ public class FaweLimit {
         MAX.MAX_EXPRESSION_MS = 50;
         MAX.FAST_PLACEMENT = true;
         MAX.CONFIRM_LARGE = true;
-        MAX.STRIP_NBT = null;
+        MAX.STRIP_NBT = Collections.emptySet();
     }
 
     public boolean MAX_CHANGES() {
