@@ -148,8 +148,8 @@ public class HistoryCommands extends MethodCommands {
                 return;
             }
         }
-        UUID other = Fawe.imp().getUUID(user);
-        if (other == null) {
+        UUID other = user.equalsIgnoreCase("*") ? null : Fawe.imp().getUUID(user);
+        if (other == null && !user.equalsIgnoreCase("*")) {
             BBC.PLAYER_NOT_FOUND.send(player, user);
             return;
         }
@@ -189,7 +189,8 @@ public class HistoryCommands extends MethodCommands {
         database.getPotentialEdits(other, System.currentTimeMillis() - timeDiff, bot, top, new RunnableVal<DiskStorageHistory>() {
             @Override
             public void run(DiskStorageHistory edit) {
-                edit.undo(fp, allowedRegions);
+                if (restore) edit.redo(fp, allowedRegions);
+                else edit.undo(fp, allowedRegions);
                 BBC.ROLLBACK_ELEMENT.send(player, Fawe.imp().getWorldName(edit.getWorld()) + "/" + user + "-" + edit.getIndex());
                 count.incrementAndGet();
             }
