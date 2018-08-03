@@ -7,11 +7,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
 import sun.reflect.ConstructorAccessor;
 import sun.reflect.FieldAccessor;
 import sun.reflect.ReflectionFactory;
@@ -28,6 +25,10 @@ public class ReflectionUtils {
 
     @SuppressWarnings("unchecked")
     public static <T extends Enum<?>> T addEnum(Class<T> enumType, String enumName) {
+        return addEnum(enumType, enumName, new Class<?>[]{} , new Object[]{});
+    }
+
+    public static <T extends Enum<?>> T addEnum(Class<T> enumType, String enumName, Class<?>[] additionalTypes, Object[] additionalValues) {
 
         // 0. Sanity checks
         if (!Enum.class.isAssignableFrom(enumType)) {
@@ -54,8 +55,8 @@ public class ReflectionUtils {
             T newValue = (T) makeEnum(enumType, // The target enum class
                     enumName, // THE NEW ENUM INSTANCE TO BE DYNAMICALLY ADDED
                     values.size(),
-                    new Class<?>[]{}, // can be used to pass values to the enum constuctor
-                    new Object[]{}); // can be used to pass values to the enum constuctor
+                    additionalTypes, // can be used to pass values to the enum constuctor
+                    additionalValues); // can be used to pass values to the enum constuctor
 
             // 4. add new value
             values.add(newValue);
@@ -67,6 +68,31 @@ public class ReflectionUtils {
             // 6. Clean enum cache
             cleanEnumCache(enumType);
             return newValue;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    public static <T extends Enum<?>> void clearEnum(Class<T> enumType) {
+        // 0. Sanity checks
+        if (!Enum.class.isAssignableFrom(enumType)) {
+            throw new RuntimeException("class " + enumType + " is not an instance of Enum");
+        }
+        // 1. Lookup "$VALUES" holder in enum class and get previous enum instances
+        Field valuesField = null;
+        Field[] fields = enumType.getDeclaredFields();
+        for (Field field : fields) {
+            if (field.getName().contains("$VALUES")) {
+                valuesField = field;
+                break;
+            }
+        }
+        AccessibleObject.setAccessible(new Field[]{valuesField}, true);
+        try {
+            setFailsafeFieldValue(valuesField, null, Array.newInstance(enumType, 0));
+            // 6. Clean enum cache
+            cleanEnumCache(enumType);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
@@ -134,9 +160,12 @@ public class ReflectionUtils {
         blankField(enumClass, "enumConstants"); // IBM JDK
     }
 
+    private static Class<?> UNMODIFIABLE_MAP = Collections.unmodifiableMap(Collections.EMPTY_MAP).getClass();
+
     public static <T, V> Map<T, V> getMap(Map<T, V> map) {
         try {
             Class<? extends Map> clazz = map.getClass();
+            if (clazz != UNMODIFIABLE_MAP) return map;
             Field m = clazz.getDeclaredField("m");
             m.setAccessible(true);
             return (Map<T, V>) m.get(map);

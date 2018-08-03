@@ -162,7 +162,13 @@ public class HistoryCommands extends MethodCommands {
             BBC.COMMAND_SYNTAX.send(player, "/frb " + user + " " + radius + " <time>");
             return;
         }
-        radius = Math.max(Math.min(500, radius), 0);
+        radius = Math.max(radius, 0);
+        if (radius > 500) {
+            if (!player.hasPermission("fawe.admin")) {
+                BBC.WORLDEDIT_CANCEL_REASON_MAX_CHECKS.send(player);
+                return;
+            }
+        }
         final World world = player.getWorld();
         WorldVector origin = player.getPosition();
         Vector bot = origin.subtract(radius, radius, radius);

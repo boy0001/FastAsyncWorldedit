@@ -19,7 +19,7 @@ public final class CompoundTag extends Tag {
      */
     public CompoundTag(Map<String, Tag> value) {
         super();
-        this.value = Collections.unmodifiableMap(value);
+        this.value = value;
     }
 
     @Override
