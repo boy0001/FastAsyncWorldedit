@@ -160,6 +160,10 @@ public class Settings extends Config {
                 "Should large edits require confirmation (>16384 chunks)",
         })
         public boolean CONFIRM_LARGE = true;
+        @Comment({
+                "List of blocks to strip nbt from",
+        })
+        public List<String> STRIP_NBT = new ArrayList<>();
     }
 
     public static class HISTORY {
@@ -476,6 +480,14 @@ public class Settings extends Config {
                 limit.SPEED_REDUCTION = Math.min(limit.SPEED_REDUCTION, newLimit.SPEED_REDUCTION);
                 limit.FAST_PLACEMENT |= newLimit.FAST_PLACEMENT;
                 limit.CONFIRM_LARGE &= newLimit.CONFIRM_LARGE;
+                if (limit.STRIP_NBT == null) limit.STRIP_NBT = newLimit.STRIP_NBT.isEmpty() ? Collections.emptySet() : new HashSet<>(newLimit.STRIP_NBT);
+                else if (limit.STRIP_NBT.isEmpty() || newLimit.STRIP_NBT.isEmpty()) {
+                    limit.STRIP_NBT = Collections.emptySet();
+                } else {
+                    limit.STRIP_NBT = new HashSet<>(limit.STRIP_NBT);
+                    limit.STRIP_NBT.retainAll(newLimit.STRIP_NBT);
+                    if (limit.STRIP_NBT.isEmpty()) limit.STRIP_NBT = Collections.emptySet();
+                }
             }
         }
         return limit;

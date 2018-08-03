@@ -62,6 +62,21 @@ public class HistoryCommands extends MethodCommands {
         super(worldEdit);
     }
 
+
+    @Command(
+            aliases = {"/frb", "frb", "fawerollback", "/fawerollback", "/rollback"},
+            usage = "<user=Empire92> <radius=5> <time=3d4h>",
+            desc = "Undo a specific edit. " +
+                    " - The time uses s, m, h, d, y.\n" +
+                    " - Import from disk: /frb #import",
+            min = 1,
+            max = 3
+    )
+    @CommandPermissions("worldedit.history.rollback")
+    public void faweRollback(final Player player, LocalSession session, final String user, @Optional("0") @Range(min = 0) int radius, @Optional("0") String time) throws WorldEditException {
+
+    }
+
     @Command(
             aliases = {"/frb", "frb", "fawerollback", "/fawerollback", "/rollback"},
             usage = "<user=Empire92> <radius=5> <time=3d4h>",
@@ -199,8 +214,42 @@ public class HistoryCommands extends MethodCommands {
         );
     }
 
-    private void rollBack(DiskStorageHistory file) {
-
+    @Command(
+            aliases = {"/fawerestore", "/frestore"},
+            usage = "<user=Empire92|*> <radius=5> <time=3d4h>",
+            desc = "Redo a specific edit. " +
+                    " - The time uses s, m, h, d, y.\n" +
+                    " - Import from disk: /frb #import",
+            min = 1,
+            max = 3
+    )
+    @CommandPermissions("worldedit.history.rollback")
+    private void restore(DiskStorageHistory file) {
+        int times = Math.max(1, context.getInteger(0, 1));
+        if (times > 50) {
+            FawePlayer.wrap(player).checkConfirmation(getArguments(context), times, 50);
+        }
+        for (int i = 0; i < times; ++i) {
+            EditSession undone;
+            if (context.argsLength() < 2) {
+                undone = session.undo(session.getBlockBag(player), player);
+            } else {
+                player.checkPermission("worldedit.history.undo.other");
+                LocalSession sess = worldEdit.getSession(context.getString(1));
+                if (sess == null) {
+                    BBC.COMMAND_HISTORY_OTHER_ERROR.send(player, context.getString(1));
+                    break;
+                }
+                undone = sess.undo(session.getBlockBag(player), player);
+            }
+            if (undone != null) {
+                BBC.COMMAND_UNDO_SUCCESS.send(player);
+                worldEdit.flushBlockBag(player, undone);
+            } else {
+                BBC.COMMAND_UNDO_ERROR.send(player);
+                break;
+            }
+        }
     }
 
     @Command(

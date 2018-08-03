@@ -56,6 +56,7 @@ import com.sk89q.worldedit.extent.ChangeSetExtent;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.extent.MaskingExtent;
 import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
+import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.extent.inventory.BlockBag;
 import com.sk89q.worldedit.extent.inventory.BlockBagExtent;
 import com.sk89q.worldedit.extent.world.SurvivalModeExtent;
@@ -316,6 +317,9 @@ public class EditSession extends AbstractDelegateExtent implements HasFaweQueue,
             }
         } else {
             this.extent = new HeightBoundExtent(this.extent, this.limit, 0, maxY);
+        }
+        if (this.limit.STRIP_NBT != null && !this.limit.STRIP_NBT.isEmpty()) {
+            this.extent = new StripNBTExtent(this.extent, this.limit.STRIP_NBT);
         }
         this.extent = wrapExtent(this.extent, bus, event, Stage.BEFORE_HISTORY);
         setExtent(this.extent);

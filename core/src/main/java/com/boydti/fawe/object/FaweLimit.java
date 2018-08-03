@@ -1,5 +1,10 @@
 package com.boydti.fawe.object;
 
+import com.sk89q.worldedit.blocks.BaseBlock;
+
+import java.util.Collections;
+import java.util.Set;
+
 /**
  * Created by Jesse on 4/5/2016.
  */
@@ -17,7 +22,7 @@ public class FaweLimit {
     public int SPEED_REDUCTION = Integer.MAX_VALUE;
     public boolean FAST_PLACEMENT = false;
     public boolean CONFIRM_LARGE = true;
-//    public boolean[] STRIP_NBT = null;
+    public Set<String> STRIP_NBT = null;
 
     public static FaweLimit MAX;
 
@@ -66,7 +71,7 @@ public class FaweLimit {
         MAX.MAX_EXPRESSION_MS = 50;
         MAX.FAST_PLACEMENT = true;
         MAX.CONFIRM_LARGE = true;
-//        MAX.STRIP_NBT = null;
+        MAX.STRIP_NBT = null;
     }
 
     public boolean MAX_CHANGES() {
@@ -103,7 +108,8 @@ public class FaweLimit {
                 MAX_HISTORY == Integer.MAX_VALUE &&
                 INVENTORY_MODE == 0 &&
                 SPEED_REDUCTION == 0 &&
-                FAST_PLACEMENT == true;
+                FAST_PLACEMENT == true &&
+                (STRIP_NBT == null || STRIP_NBT.isEmpty());
     }
 
     public void set(FaweLimit limit) {
@@ -119,6 +125,7 @@ public class FaweLimit {
         SPEED_REDUCTION = limit.SPEED_REDUCTION;
         FAST_PLACEMENT = limit.FAST_PLACEMENT;
         CONFIRM_LARGE = limit.CONFIRM_LARGE;
+        STRIP_NBT = limit.STRIP_NBT;
     }
 
     public FaweLimit copy() {
@@ -135,6 +142,7 @@ public class FaweLimit {
         limit.MAX_HISTORY = MAX_HISTORY;
         limit.FAST_PLACEMENT = FAST_PLACEMENT;
         limit.CONFIRM_LARGE = CONFIRM_LARGE;
+        limit.STRIP_NBT = STRIP_NBT;
         return limit;
     }
 
