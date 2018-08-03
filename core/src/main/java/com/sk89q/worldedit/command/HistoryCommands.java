@@ -41,6 +41,7 @@ import com.sk89q.worldedit.*;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.util.command.binding.Range;
+import com.sk89q.worldedit.util.command.binding.Switch;
 import com.sk89q.worldedit.util.command.parametric.Optional;
 import com.sk89q.worldedit.world.World;
 import java.io.File;
@@ -73,7 +74,7 @@ public class HistoryCommands extends MethodCommands {
             max = 3
     )
     @CommandPermissions("worldedit.history.rollback")
-    public void faweRollback(final Player player, LocalSession session, final String user, @Optional("0") @Range(min = 0) int radius, @Optional("0") String time, @Optional("r") boolean restore) throws WorldEditException {
+    public void faweRollback(final Player player, LocalSession session, final String user, @Optional("0") @Range(min = 0) int radius, @Optional("0") String time, @Switch('r') boolean restore) throws WorldEditException {
         if (!Settings.IMP.HISTORY.USE_DATABASE) {
             BBC.SETTING_DISABLE.send(player, "history.use-database (Import with /frb #import )");
             return;
@@ -210,7 +211,7 @@ public class HistoryCommands extends MethodCommands {
             max = 3
     )
     @CommandPermissions("worldedit.history.rollback")
-    private void restore(final Player player, LocalSession session, final String user, @Optional("0") @Range(min = 0) int radius, @Optional("0") String time) throws WorldEditException {
+    public void restore(final Player player, LocalSession session, final String user, @Optional("0") @Range(min = 0) int radius, @Optional("0") String time) throws WorldEditException {
         faweRollback(player, session, user, radius, time, true);
     }
 
