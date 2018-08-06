@@ -909,9 +909,9 @@ public class UtilityCommands extends MethodCommands {
             desc = "Open the GUI"
     )
     @Logging(PLACEMENT)
-    public void gui(Actor actor, FawePlayer fp, LocalSession session, CommandContext args) throws WorldEditException {
+    public void gui(Actor actor, FawePlayer fp, LocalSession session, CommandContext args) throws WorldEditException, CommandException {
         FormBuilder gui = Fawe.imp().getFormBuilder();
-        if (gui == null) throw new UnsupportedOperationException("Not implemented");
+        if (gui == null) throw new CommandException("Only supported on Pocket Edition");
 
         Dispatcher callable = worldEdit.getPlatformManager().getCommandManager().getDispatcher();
         CommandLocals locals = args.getLocals();
