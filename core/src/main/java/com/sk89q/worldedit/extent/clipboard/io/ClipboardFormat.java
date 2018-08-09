@@ -307,6 +307,10 @@ public enum ClipboardFormat {
         checkNotNull(input);
         WorldEdit worldEdit = WorldEdit.getInstance();
         LocalConfiguration config = worldEdit.getConfiguration();
+        if (input.startsWith("url:")) {
+            URL base = new URL(Settings.IMP.WEB.URL);
+            input = new URL(base, "uploads/" + input.substring(4) + ".schematic").toString();
+        }
         if (input.startsWith("http")) {
             URL url = new URL(input);
             URL webInterface = new URL(Settings.IMP.WEB.ASSETS);
