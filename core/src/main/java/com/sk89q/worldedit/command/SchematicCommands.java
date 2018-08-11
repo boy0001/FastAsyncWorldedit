@@ -41,6 +41,7 @@ import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.entity.Player;
+import com.sk89q.worldedit.event.extent.PlayerSaveClipboardEvent;
 import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
@@ -337,15 +338,18 @@ public class SchematicCommands extends MethodCommands {
                 } else {
                     target = clipboard;
                 }
-
-                try (ClipboardWriter writer = format.getWriter(fos)) {
-                    if (writer instanceof StructureFormat) {
-                        ((StructureFormat) writer).write(target, holder.getWorldData(), player.getName());
-                    } else {
-                        writer.write(target, holder.getWorldData());
+                if (new PlayerSaveClipboardEvent(player, clipboard, f.toURI()).call()) {
+                    try (ClipboardWriter writer = format.getWriter(fos)) {
+                        if (writer instanceof StructureFormat) {
+                            ((StructureFormat) writer).write(target, holder.getWorldData(), player.getName());
+                        } else {
+                            writer.write(target, holder.getWorldData());
+                        }
+                        log.info(player.getName() + " saved " + f.getCanonicalPath());
+                        BBC.SCHEMATIC_SAVED.send(player, filename);
                     }
-                    log.info(player.getName() + " saved " + f.getCanonicalPath());
-                    BBC.SCHEMATIC_SAVED.send(player, filename);
+                } else {
+                    BBC.WORLDEDIT_CANCEL_REASON_MANUAL.send(player);
                 }
             }
         } catch (IllegalArgumentException e) {
