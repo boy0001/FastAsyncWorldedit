@@ -21,10 +21,12 @@ package com.sk89q.worldedit.event.extent;
 
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.entity.Player;
+import com.sk89q.worldedit.event.Cancellable;
+import com.sk89q.worldedit.event.Event;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
-
 import java.net.URI;
+
 
 import static com.sk89q.worldedit.EditSession.Stage;
 

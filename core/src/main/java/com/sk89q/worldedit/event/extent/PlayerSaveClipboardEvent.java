@@ -11,13 +11,14 @@ import java.net.URI;
 public class PlayerSaveClipboardEvent extends FaweEvent {
     private final Player player;
     private final Clipboard clipboard;
-    private final URI uri;
+    private final URI source, destination;
     private boolean cancelled;
 
-    public PlayerSaveClipboardEvent(Player player, Clipboard clipboard, URI destination) {
+    public PlayerSaveClipboardEvent(Player player, Clipboard clipboard, URI source, URI destination) {
         this.player = player;
         this.clipboard = clipboard;
-        this.uri = destination;
+        this.source = source;
+        this.destination = destination;
     }
 
     @Override
@@ -30,8 +31,12 @@ public class PlayerSaveClipboardEvent extends FaweEvent {
         this.cancelled = cancelled;
     }
 
-    public URI getUri() {
-        return uri;
+    public URI getSourceURI() {
+        return source;
+    }
+
+    public URI getDestinationURI() {
+        return destination;
     }
 
     public Clipboard getClipboard() {

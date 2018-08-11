@@ -338,7 +338,9 @@ public class SchematicCommands extends MethodCommands {
                 } else {
                     target = clipboard;
                 }
-                if (new PlayerSaveClipboardEvent(player, clipboard, f.toURI()).call()) {
+                URI uri = null;
+                if (holder instanceof URIClipboardHolder) uri = ((URIClipboardHolder) holder).getURI(clipboard);
+                if (new PlayerSaveClipboardEvent(player, clipboard, uri, f.toURI()).call()) {
                     try (ClipboardWriter writer = format.getWriter(fos)) {
                         if (writer instanceof StructureFormat) {
                             ((StructureFormat) writer).write(target, holder.getWorldData(), player.getName());
