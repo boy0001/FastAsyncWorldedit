@@ -174,9 +174,6 @@ public abstract class ChunkListener implements Listener {
     public void event(BlockExpEvent event) { reset(); }
 
     @EventHandler(priority = EventPriority.LOWEST)
-    public void event(BlockExplodeEvent event) { reset(); }
-
-    @EventHandler(priority = EventPriority.LOWEST)
     public void event(BlockFadeEvent event) { reset(); }
 
     @EventHandler(priority = EventPriority.LOWEST)
