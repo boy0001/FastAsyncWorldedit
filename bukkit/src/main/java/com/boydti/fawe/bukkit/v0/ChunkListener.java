@@ -1,6 +1,7 @@
 package com.boydti.fawe.bukkit.v0;
 
 import com.boydti.fawe.Fawe;
+import com.boydti.fawe.bukkit.BukkitMain;
 import com.boydti.fawe.bukkit.FaweBukkit;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.util.FaweTimer;
@@ -15,6 +16,7 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -39,8 +41,11 @@ import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.inventory.FurnaceBurnEvent;
 import org.bukkit.event.inventory.FurnaceSmeltEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
+import org.bukkit.plugin.EventExecutor;
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.util.Vector;
 
+import java.lang.reflect.Method;
 import java.util.List;
 
 public abstract class ChunkListener implements Listener {
@@ -50,7 +55,23 @@ public abstract class ChunkListener implements Listener {
 
     public ChunkListener() {
         if (Settings.IMP.TICK_LIMITER.ENABLED) {
-            Bukkit.getPluginManager().registerEvents(ChunkListener.this, Fawe.<FaweBukkit>imp().getPlugin());
+            PluginManager plm = Bukkit.getPluginManager();
+            BukkitMain plugin = Fawe.<FaweBukkit>imp().getPlugin();
+            for (Method method : this.getClass().getMethods()) {
+                if (method.isAnnotationPresent(EventHandler.class)) {
+                    try {
+                        EventHandler annotation = method.getAnnotation(EventHandler.class);
+                        EventPriority priority = annotation.priority();
+                        boolean ignoreC = annotation.ignoreCancelled();
+                        Class<? extends Event> event = (Class<? extends Event>) method.getParameterTypes()[0];
+                        EventExecutor executor = EventExecutor.create(method, event);
+                        plm.registerEvent(event, this, priority, executor, plugin, ignoreC);
+                    } catch (Throwable e) {
+                        Fawe.debug("Failed to register " + method + " | " + e.getMessage());
+                        e.printStackTrace();
+                    }
+                }
+            }
             TaskManager.IMP.repeat(new Runnable() {
                 @Override
                 public void run() {
@@ -81,7 +102,7 @@ public abstract class ChunkListener implements Listener {
     public static boolean physicsFreeze = false;
     public static boolean itemFreeze = false;
 
-    protected Long2ObjectOpenHashMap<Boolean> badChunks = new Long2ObjectOpenHashMap<>();
+    protected final Long2ObjectOpenHashMap<Boolean> badChunks = new Long2ObjectOpenHashMap<>();
     private Long2ObjectOpenHashMap<int[]> counter = new Long2ObjectOpenHashMap<>();
     private int lastX = Integer.MIN_VALUE, lastZ = Integer.MIN_VALUE;
     private int[] lastCount;
@@ -163,7 +184,7 @@ public abstract class ChunkListener implements Listener {
 //    public void event(BrewingStandFuelEvent event) { reset(); }
 //
 //    @EventHandler(priority = EventPriority.LOWEST)
-//    public void event(CauldronLevelChangeEvent event) { reset(); }
+//    public void event(CauldronLevelChangeEvent event ) { reset(); }
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void event(FurnaceBurnEvent event) { reset(); }
