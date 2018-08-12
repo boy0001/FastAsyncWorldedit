@@ -69,8 +69,27 @@ public abstract class ChunkListener implements Listener {
         if (Settings.IMP.TICK_LIMITER.ENABLED) {
             PluginManager plm = Bukkit.getPluginManager();
             Plugin plugin = Fawe.<FaweBukkit>imp().getPlugin();
-            plm.registerEvents(this, plugin);
             try { plm.registerEvents(new ChunkListener_8Plus(this), plugin); } catch (Throwable ignore) {}
+            try {
+                for (Method method : this.getClass().getMethods()) {
+                    if (method.isAnnotationPresent(EventHandler.class)) {
+                        try {
+                            EventHandler annotation = method.getAnnotation(EventHandler.class);
+                            EventPriority priority = annotation.priority();
+                            boolean ignoreC = annotation.ignoreCancelled();
+                            Class<? extends Event> event = (Class<? extends Event>) method.getParameterTypes()[0];
+                            EventExecutor executor = EventExecutor.create(method, event);
+                            plm.registerEvent(event, this, priority, executor, plugin, ignoreC);
+                        } catch (Throwable e) {
+                            Fawe.debug("Failed to register " + method + " | " + e.getMessage());
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            } catch (Throwable e) {
+                System.out.println("Failed to get methods");
+                e.printStackTrace();
+            }
             TaskManager.IMP.repeat(new Runnable() {
                 @Override
                 public void run() {
