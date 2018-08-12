@@ -1,7 +1,9 @@
 <p align="center">
   <img src="https://i.imgur.com/Fog5fDB.png">
 </p>
-=========
+
+---
+
 FAWE is a fork of WorldEdit that has huge speed and memory improvements and considerably more features
 
 It is available for Bukkit, Forge, Sponge and Nukkit.
