@@ -1,14 +1,20 @@
-# FastAsyncWorldEdit
+<p align="center">
+  <img src="https://i.imgur.com/Fog5fDB.png">
+</p>
+
+---
+
 FAWE is a fork of WorldEdit that has huge speed and memory improvements and considerably more features
 
 It is available for Bukkit, Forge, Sponge and Nukkit.
 
 ## Chat
-Meet us on [`Discord`](https://discord.gg/ngZCzbU) or [`irc.esper.net #IntellectualCrafters`](http://webchat.esper.net/?nick=&channels=IntellectualCrafters).
+### - **`> `**[`Discord`](https://discord.gg/ngZCzbU)`|`[`IRC`](http://webchat.esper.net/?nick=&channels=IntellectualCrafters)` | `[`Spigot Forums`](https://www.spigotmc.org/threads/fast-async-worldedit.100104/)**` <`**
 
 ## Releases
 
-https://github.com/boy0001/FastAsyncWorldedit/releases/latest
+### - [**`> Download <`**](https://empcraft.com/fawe/download/)
+### - [**`> Jenkins <`**](https://ci.athion.net/job/FastAsyncWorldEdit/)
 
 ## Building
 FAWE uses gradle to build
