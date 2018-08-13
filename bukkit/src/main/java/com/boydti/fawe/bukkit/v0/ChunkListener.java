@@ -1,18 +1,13 @@
 package com.boydti.fawe.bukkit.v0;
 
 import com.boydti.fawe.Fawe;
-import com.boydti.fawe.bukkit.BukkitMain;
 import com.boydti.fawe.bukkit.FaweBukkit;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.util.FaweTimer;
 import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.TaskManager;
-import com.google.common.io.Files;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
@@ -20,7 +15,6 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
-import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -45,20 +39,9 @@ import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.inventory.FurnaceBurnEvent;
 import org.bukkit.event.inventory.FurnaceSmeltEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
-import org.bukkit.plugin.EventExecutor;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
-import org.bukkit.util.FileUtil;
-import org.bukkit.util.StringUtil;
 import org.bukkit.util.Vector;
-
-import java.io.*;
-import java.lang.reflect.Method;
-import java.nio.charset.StandardCharsets;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 public abstract class ChunkListener implements Listener {
 
@@ -69,27 +52,11 @@ public abstract class ChunkListener implements Listener {
         if (Settings.IMP.TICK_LIMITER.ENABLED) {
             PluginManager plm = Bukkit.getPluginManager();
             Plugin plugin = Fawe.<FaweBukkit>imp().getPlugin();
-            try { plm.registerEvents(new ChunkListener_8Plus(this), plugin); } catch (Throwable ignore) {}
+            plm.registerEvents(this, plugin);
             try {
-                for (Method method : this.getClass().getMethods()) {
-                    if (method.isAnnotationPresent(EventHandler.class)) {
-                        try {
-                            EventHandler annotation = method.getAnnotation(EventHandler.class);
-                            EventPriority priority = annotation.priority();
-                            boolean ignoreC = annotation.ignoreCancelled();
-                            Class<? extends Event> event = (Class<? extends Event>) method.getParameterTypes()[0];
-                            EventExecutor executor = EventExecutor.create(method, event);
-                            plm.registerEvent(event, this, priority, executor, plugin, ignoreC);
-                        } catch (Throwable e) {
-                            Fawe.debug("Failed to register " + method + " | " + e.getMessage());
-                            e.printStackTrace();
-                        }
-                    }
-                }
-            } catch (Throwable e) {
-                System.out.println("Failed to get methods");
-                e.printStackTrace();
-            }
+                Fawe.debug("Detected " + BlockExplodeEvent.class);
+                plm.registerEvents(new ChunkListener_8Plus(this), plugin);
+            } catch (Throwable ignore) {}
             TaskManager.IMP.repeat(new Runnable() {
                 @Override
                 public void run() {
