@@ -193,6 +193,8 @@ public class MCAQueueMap implements IFaweQueueMap {
         lastZ = Integer.MIN_VALUE;
         lastFileX = Integer.MIN_VALUE;
         lastFileZ = Integer.MIN_VALUE;
+        lastChunk = null;
+        lastFile = null;
         if (!mcaFileMap.isEmpty()) {
             Iterator<Map.Entry<Long, MCAFile>> iter = mcaFileMap.entrySet().iterator();
             boolean result;

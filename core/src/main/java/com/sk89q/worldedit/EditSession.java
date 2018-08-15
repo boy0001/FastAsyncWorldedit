@@ -1309,7 +1309,7 @@ public class EditSession extends AbstractDelegateExtent implements HasFaweQueue,
             queue.dequeue();
             return;
         }
-        if (Fawe.isMainThread()) {
+        if (Fawe.isMainThread() && (!(queue instanceof MCAQueue) || ((MCAQueue) queue).hasParent())) {
             SetQueue.IMP.flush(queue);
         } else {
             queue.flush();

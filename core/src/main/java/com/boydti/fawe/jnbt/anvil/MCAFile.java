@@ -670,6 +670,7 @@ public class MCAFile {
                     pool.awaitQuiescence(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
                 }
             }
+            chunks.clear();
         }
         IterableThreadLocal.clean(byteStore1);
         IterableThreadLocal.clean(byteStore2);

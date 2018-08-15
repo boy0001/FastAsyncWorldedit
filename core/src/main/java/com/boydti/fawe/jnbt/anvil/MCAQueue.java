@@ -70,6 +70,10 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
         this.hasSky = hasSky;
     }
 
+    public boolean hasParent() {
+        return parent != null || parentNMS != null;
+    }
+
     @Override
     public FaweChunk loadChunk(FaweQueue faweQueue, int x, int z, boolean generate) {
         return getFaweChunk(x, z);
