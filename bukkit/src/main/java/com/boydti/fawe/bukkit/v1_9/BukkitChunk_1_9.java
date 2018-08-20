@@ -172,16 +172,24 @@ public class BukkitChunk_1_9 extends CharFaweChunk<Chunk, BukkitQueue_1_9_R1> {
             // Remove entities
             for (int i = 0; i < entities.length; i++) {
                 int count = this.getCount(i);
-                if (count == 0) {
+                if (count == 0 || getParent().getSettings().EXPERIMENTAL.KEEP_ENTITIES_IN_BLOCKS) {
                     continue;
                 } else if (count >= 4096) {
                     Collection<Entity> ents = entities[i];
                     if (!ents.isEmpty()) {
                         synchronized (BukkitQueue_0.class) {
-                            ents.clear();
+                            Iterator<Entity> iter = ents.iterator();
+                            while (iter.hasNext()) {
+                                Entity entity = iter.next();
+                                if (entity instanceof EntityPlayer) {
+                                    continue;
+                                }
+                                iter.remove();
+                                nmsWorld.removeEntity(entity);
+                            }
                         }
                     }
-                } else if (!getParent().getSettings().EXPERIMENTAL.KEEP_ENTITIES_IN_BLOCKS) {
+                } else {
                     Collection<Entity> ents = entities[i];
                     if (!ents.isEmpty()) {
                         char[] array = this.getIdArray(i);

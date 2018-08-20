@@ -231,21 +231,27 @@ public class BukkitChunk_1_10 extends CharFaweChunk<Chunk, BukkitQueue_1_10> {
             }
             for (int i = 0; i < entities.length; i++) {
                 int count = this.getCount(i);
-                if (count == 0) {
+                if (count == 0 || getParent().getSettings().EXPERIMENTAL.KEEP_ENTITIES_IN_BLOCKS) {
                     continue;
                 } else if (count >= 4096) {
                     Collection<net.minecraft.server.v1_10_R1.Entity> ents = entities[i];
                     if (!ents.isEmpty()) {
-                        if (copy != null) {
-                            for (net.minecraft.server.v1_10_R1.Entity entity : ents) {
-                                copy.storeEntity(entity);
+                        synchronized (BukkitQueue_0.class) {
+                            Iterator<Entity> iter = ents.iterator();
+                            while (iter.hasNext()) {
+                                Entity entity = iter.next();
+                                if (entity instanceof EntityPlayer) {
+                                    continue;
+                                }
+                                iter.remove();
+                                if (copy != null) {
+                                    copy.storeEntity(entity);
+                                }
+                                removeEntity(entity);
                             }
                         }
-                        synchronized (BukkitQueue_0.class) {
-                            ents.clear();
-                        }
                     }
-                } else if (!getParent().getSettings().EXPERIMENTAL.KEEP_ENTITIES_IN_BLOCKS) {
+                } else {
                     Collection<net.minecraft.server.v1_10_R1.Entity> ents = entities[i];
                     if (!ents.isEmpty()) {
                         char[] array = this.getIdArray(i);

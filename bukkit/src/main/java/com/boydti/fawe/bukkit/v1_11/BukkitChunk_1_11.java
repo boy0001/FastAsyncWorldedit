@@ -3,6 +3,7 @@ package com.boydti.fawe.bukkit.v1_11;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.bukkit.v0.BukkitQueue_0;
+import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweQueue;
@@ -218,6 +219,7 @@ public class BukkitChunk_1_11 extends CharFaweChunk<Chunk, com.boydti.fawe.bukki
             BukkitChunk_1_11_Copy copy = getParent().getChangeTask() != null ? new BukkitChunk_1_11_Copy(getParent(), getX(), getZ()) : null;
             final Chunk chunk = this.getChunk();
             final World world = chunk.getWorld();
+            Settings settings = getParent().getSettings();
             int bx = this.getX() << 4;
             int bz = this.getZ() << 4;
             final boolean flag = world.getEnvironment() == World.Environment.NORMAL;
@@ -252,21 +254,27 @@ public class BukkitChunk_1_11 extends CharFaweChunk<Chunk, com.boydti.fawe.bukki
             }
             for (int i = 0; i < entities.length; i++) {
                 int count = this.getCount(i);
-                if (count == 0) {
+                if (count == 0 || settings.EXPERIMENTAL.KEEP_ENTITIES_IN_BLOCKS) {
                     continue;
                 } else if (count >= 4096) {
                     Collection<Entity> ents = entities[i];
                     if (!ents.isEmpty()) {
-                        if (copy != null) {
-                            for (Entity entity : ents) {
-                                copy.storeEntity(entity);
+                        synchronized (BukkitQueue_0.class) {
+                            Iterator<Entity> iter = ents.iterator();
+                            while (iter.hasNext()) {
+                                Entity entity = iter.next();
+                                if (entity instanceof EntityPlayer) {
+                                    continue;
+                                }
+                                iter.remove();
+                                if (copy != null) {
+                                    copy.storeEntity(entity);
+                                }
+                                removeEntity(entity);
                             }
                         }
-                        synchronized (BukkitQueue_0.class) {
-                            ents.clear();
-                        }
                     }
-                } else if (!getParent().getSettings().EXPERIMENTAL.KEEP_ENTITIES_IN_BLOCKS) {
+                } else {
                     Collection<Entity> ents = entities[i];
                     if (!ents.isEmpty()) {
                         char[] array = this.getIdArray(i);
