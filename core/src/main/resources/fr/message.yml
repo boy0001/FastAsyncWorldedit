@@ -1,5 +1,5 @@
 info:
-  prefix: '&7[&bFreeBuild &aWorldEdit&7] &r&7'
+  prefix: '&8(&4&lFAWE&8)&r&7'
   file_deleted: '%s0 a été supprimé.'
   schematic_pasting: '&7La schematic est en train d''être collée. Cette action ne
     peut pas être annulée.'
