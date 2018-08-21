@@ -27,6 +27,7 @@ import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.extension.platform.CommandManager;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.pattern.Pattern;
+import com.sk89q.worldedit.internal.expression.Expression;
 import com.sk89q.worldedit.util.command.binding.Range;
 import com.sk89q.worldedit.util.command.binding.Switch;
 import com.sk89q.worldedit.util.command.parametric.Optional;
@@ -488,9 +489,8 @@ public class BrushOptionsCommands extends MethodCommands {
             max = 1
     )
     @CommandPermissions("worldedit.brush.options.size")
-    public void size(Player player, LocalSession session, CommandContext args, @Switch('h') boolean offHand) throws WorldEditException {
-        int radius = args.getInteger(0);
-        worldEdit.checkMaxBrushRadius(radius);
+    public void size(Player player, LocalSession session, Expression radius, @Switch('h') boolean offHand) throws WorldEditException {
+        BrushCommands.checkMaxBrushRadius(radius);
         BrushTool tool = session.getBrushTool(player, false);
         if (tool == null) {
             player.print(BBC.getPrefix() + BBC.BRUSH_NONE.f());

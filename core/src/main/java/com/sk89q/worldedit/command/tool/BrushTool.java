@@ -24,14 +24,7 @@ import com.boydti.fawe.util.TaskManager;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.sk89q.minecraft.util.commands.CommandException;
-import com.sk89q.worldedit.BlockWorldVector;
-import com.sk89q.worldedit.EditSession;
-import com.sk89q.worldedit.LocalConfiguration;
-import com.sk89q.worldedit.LocalSession;
-import com.sk89q.worldedit.MaxChangedBlocksException;
-import com.sk89q.worldedit.MutableBlockVector;
-import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.WorldEdit;
+import com.sk89q.worldedit.*;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.command.tool.brush.Brush;
 import com.sk89q.worldedit.entity.Player;
@@ -43,6 +36,7 @@ import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.mask.MaskIntersection;
 import com.sk89q.worldedit.function.mask.SolidBlockMask;
 import com.sk89q.worldedit.function.pattern.Pattern;
+import com.sk89q.worldedit.internal.expression.Expression;
 import com.sk89q.worldedit.session.request.Request;
 import com.sk89q.worldedit.util.Location;
 import java.io.IOException;
@@ -356,6 +350,15 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
     }
 
     /**
+     * Set the set brush size.
+     *
+     * @param radius a radius
+     */
+    public void setSize(Expression radius) {
+        this.getContext().setSize(radius);
+    }
+
+    /**
      * Get the set brush range.
      *
      * @return the range of the brush in blocks
@@ -478,11 +481,15 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
         if (transform != null) {
             editSession.addTransform(transform);
         }
+        double size = current.getSize();
         try {
             new PatternTraverser(current).reset(editSession);
-            brush.build(editSession, target, current.getMaterial(), current.getSize());
+            WorldEdit.getInstance().checkMaxBrushRadius(size);
+            brush.build(editSession, target, current.getMaterial(), size);
         } catch (MaxChangedBlocksException e) {
             player.printError("Max blocks change limit reached."); // Never happens
+        } catch (MaxBrushRadiusException e) {
+            player.printError("Max brush radius exceeded: " + size + " > " + WorldEdit.getInstance().getConfiguration().maxBrushRadius);
         } finally {
             if (bag != null) {
                 bag.flushChanges();

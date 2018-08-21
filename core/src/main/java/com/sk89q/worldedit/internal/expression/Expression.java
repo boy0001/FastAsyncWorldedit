@@ -81,6 +81,11 @@ public class Expression {
     private final Functions functions = new Functions();
     private ExpressionEnvironment environment;
 
+    public Expression(double constant) {
+        variableNames = null;
+        root = new Constant(0, constant);
+    }
+
     public static Expression compile(String expression, String... variableNames) throws ExpressionException {
         return new Expression(expression, variableNames);
     }
@@ -111,6 +116,9 @@ public class Expression {
     }
 
     public double evaluate(double... values) throws EvaluationException {
+        if (root instanceof Constant) {
+            return root.getValue();
+        }
         for (int i = 0; i < values.length; i++) {
             Variable var = variableArray[i];
             var.value = values[i];
@@ -123,6 +131,10 @@ public class Expression {
         } finally {
             popInstance();
         }
+    }
+
+    public RValue getRoot() {
+        return root;
     }
 
     public void optimize() throws EvaluationException {
