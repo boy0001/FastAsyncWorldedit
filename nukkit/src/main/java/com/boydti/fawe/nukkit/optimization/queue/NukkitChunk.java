@@ -83,12 +83,16 @@ public class NukkitChunk extends CharFaweChunk<BaseFullChunk, NukkitQueue> {
         if (biomes != null) {
             final LocalWorld lw = NukkitUtil.getLocalWorld(world);
             final byte[] biomes = getBiomeArray();
+            final byte[] nukkitBiomes = chunk.getBiomeIdArray();
             int index = 0;
             for (int z = 0; z < 16; z++) {
                 int zz = Z + z;
-                for (int x = 0; x < 16; x++) {
+                for (int x = 0; x < 16; x++, index++) {
                     int xx = X + x;
-                    lw.setBiome(MutableBlockVector2D.get(xx, zz), FaweCache.getBiome(biomes[index++] & 0xFF));
+                    byte biome = biomes[index];
+                    if (biome == 0) continue;
+                    if (biome == (byte) -1) biome = 0;
+                    nukkitBiomes[index] = biome;
                 }
             }
         }

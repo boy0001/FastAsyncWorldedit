@@ -306,7 +306,7 @@ public class NukkitWorld extends LocalWorld {
 
     @Override
     public boolean setBiome(Vector2D position, BaseBiome biome) {
-        getLevel().setBiomeId(position.getBlockX(), position.getBlockZ(), biome.getId());
+        getLevel().setBiomeId(position.getBlockX(), position.getBlockZ(), (byte) biome.getId());
         return true;
     }
 
