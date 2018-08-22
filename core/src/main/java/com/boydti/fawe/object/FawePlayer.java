@@ -143,17 +143,18 @@ public abstract class FawePlayer<T> extends Metadatable {
                 }
             }
         }
-        VirtualWorld world = getSession().getVirtualWorld();
-        if (world != null) {
-            if (close) {
-                try {
-                    world.close(false);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+        try {
+            VirtualWorld world = getSession().getVirtualWorld();
+            if (world != null) {
+                if (close) {
+                    try {
+                        world.close(false);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } else world.clear();
             }
-            else world.clear();
-        }
+        } catch (NoCapablePlatformException ignore) {}
         return cancelled;
     }
 
@@ -612,16 +613,18 @@ public abstract class FawePlayer<T> extends Metadatable {
     public void unregister() {
         cancel(true);
         if (Settings.IMP.HISTORY.DELETE_ON_LOGOUT) {
-            session = getSession();
-            WorldEdit.getInstance().removeSession(toWorldEditPlayer());
-            session.setClipboard(null);
-            session.clearHistory();
-            for (Map.Entry<Integer, Tool> entry : session.getTools().entrySet()) {
-                Tool tool = entry.getValue();
-                if (tool instanceof BrushTool) {
-                    ((BrushTool) tool).clear(getPlayer());
+            try {
+                session = getSession();
+                WorldEdit.getInstance().removeSession(toWorldEditPlayer());
+                session.setClipboard(null);
+                session.clearHistory();
+                for (Map.Entry<Integer, Tool> entry : session.getTools().entrySet()) {
+                    Tool tool = entry.getValue();
+                    if (tool instanceof BrushTool) {
+                        ((BrushTool) tool).clear(getPlayer());
+                    }
                 }
-            }
+            } catch (NoCapablePlatformException ignore) {}
         }
         Fawe.get().unregister(getName());
     }
