@@ -61,6 +61,8 @@ public class TownyFeature extends BukkitMaskManager implements Listener {
                     try {
                         if (myplot.getResident().getName().equals(player.getName())) {
                             isMember = true;
+                        } else if (fp.hasPermission("fawe.towny.member")) {
+                            isMember = myplot.getTown().hasResident(player.getName());
                         }
                     } catch (final Exception e) {
 
