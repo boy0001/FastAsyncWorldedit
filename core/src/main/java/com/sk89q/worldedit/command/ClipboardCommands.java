@@ -36,6 +36,7 @@ import com.boydti.fawe.object.schematic.Schematic;
 import com.boydti.fawe.util.ImgurUtility;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MaskTraverser;
+import com.boydti.fawe.util.chat.Message;
 import com.boydti.fawe.util.gui.FormBuilder;
 import com.boydti.fawe.wrappers.FakePlayer;
 import com.sk89q.minecraft.util.commands.*;
@@ -383,7 +384,7 @@ public class ClipboardCommands extends MethodCommands {
                     return;
                 }
             }
-            BBC.DOWNLOAD_LINK.send(player, urlText);
+            new Message().text(BBC.DOWNLOAD_LINK.f(url)).link(url.toString()).send(player);
         }
     }
 
