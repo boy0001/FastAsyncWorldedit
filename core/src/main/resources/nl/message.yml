@@ -141,7 +141,7 @@ worldedit:
     brush_copy: Links klik de fundering van de constructie om te kopieëren, rechts klik om te plakken. Verhoog
      de brush Settings als dat mogelijk is.
     brush_height_invalid: Onvalide hoogte map file (%s0)
-    brush_smooth: Note Gebruik de blend brush om caves en hangende dingen glad te krijgen.'
+    brush_smooth: Gebruik de blend brush om caves en hangende dingen glad te krijgen.'
     brush_spline: Klik Om een bevestigingspunt te zetten, klik hetzelfde punt om het af te ronden.
     brush_line_primary: Punt %s0 toegevoegt, klik op een andere locatie om de lijn te creëeren.
     brush_catenary_direction: Punt %s0 toegevoegt, klik naar de directie waar je
