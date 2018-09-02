@@ -58,9 +58,12 @@ import com.sk89q.worldedit.util.command.InvalidUsageException;
 import com.sk89q.worldedit.util.command.binding.Range;
 import com.sk89q.worldedit.util.command.binding.Switch;
 import com.sk89q.worldedit.util.command.parametric.Optional;
+import com.sk89q.worldedit.util.command.parametric.ParameterException;
+
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.net.URI;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
@@ -360,7 +363,7 @@ public class BrushCommands extends BrushProcessor {
             max = -1
     )
     @CommandPermissions("worldedit.brush.stencil")
-    public BrushSettings stencilBrush(Player player, EditSession editSession, LocalSession session, Pattern fill, @Optional("5") Expression radius, @Optional("") final String image, @Optional("0") @Step(90) @Range(min=0, max=360) final int rotation, @Optional("1") final double yscale, @Switch('w') boolean onlyWhite, @Switch('r') boolean randomRotate, CommandContext context) throws WorldEditException {
+    public BrushSettings stencilBrush(Player player, EditSession editSession, LocalSession session, Pattern fill, @Optional("5") Expression radius, @Optional("") final String image, @Optional("0") @Step(90) @Range(min=0, max=360) final int rotation, @Optional("1") final double yscale, @Switch('w') boolean onlyWhite, @Switch('r') boolean randomRotate, CommandContext context) throws WorldEditException, FileNotFoundException, ParameterException {
         checkMaxBrushRadius(radius);
         InputStream stream = getHeightmapStream(image);
         HeightBrush brush;
@@ -701,7 +704,7 @@ public class BrushCommands extends BrushProcessor {
             max = 4
     )
     @CommandPermissions("worldedit.brush.height")
-    public BrushSettings heightBrush(Player player, LocalSession session, @Optional("5") Expression radius, @Optional("") final String image, @Optional("0") @Step(90) @Range(min=0, max=360) final int rotation, @Optional("1") final double yscale, @Switch('r') boolean randomRotate, @Switch('l') boolean layers, @Switch('s') boolean dontSmooth, CommandContext context) throws WorldEditException {
+    public BrushSettings heightBrush(Player player, LocalSession session, @Optional("5") Expression radius, @Optional("") final String image, @Optional("0") @Step(90) @Range(min=0, max=360) final int rotation, @Optional("1") final double yscale, @Switch('r') boolean randomRotate, @Switch('l') boolean layers, @Switch('s') boolean dontSmooth, CommandContext context) throws WorldEditException, FileNotFoundException, ParameterException {
         return terrainBrush(player, session, radius, image, rotation, yscale, false, randomRotate, layers, !dontSmooth, ScalableHeightMap.Shape.CONE, context);
     }
 
@@ -719,7 +722,7 @@ public class BrushCommands extends BrushProcessor {
             max = 4
     )
     @CommandPermissions("worldedit.brush.height")
-    public BrushSettings cliffBrush(Player player, LocalSession session, @Optional("5") Expression radius, @Optional("") final String image, @Optional("0") @Step(90) @Range(min=0, max=360) final int rotation, @Optional("1") final double yscale, @Switch('r') boolean randomRotate, @Switch('l') boolean layers, @Switch('s') boolean dontSmooth, CommandContext context) throws WorldEditException {
+    public BrushSettings cliffBrush(Player player, LocalSession session, @Optional("5") Expression radius, @Optional("") final String image, @Optional("0") @Step(90) @Range(min=0, max=360) final int rotation, @Optional("1") final double yscale, @Switch('r') boolean randomRotate, @Switch('l') boolean layers, @Switch('s') boolean dontSmooth, CommandContext context) throws WorldEditException, FileNotFoundException, ParameterException {
         return terrainBrush(player, session, radius, image, rotation, yscale, true, randomRotate, layers, !dontSmooth, ScalableHeightMap.Shape.CYLINDER, context);
     }
 
@@ -736,11 +739,11 @@ public class BrushCommands extends BrushProcessor {
             max = 4
     )
     @CommandPermissions("worldedit.brush.height")
-    public BrushSettings flattenBrush(Player player, LocalSession session, @Optional("5") Expression radius, @Optional("") final String image, @Optional("0") @Step(90) @Range(min=0, max=360) final int rotation, @Optional("1") final double yscale, @Switch('r') boolean randomRotate, @Switch('l') boolean layers, @Switch('s') boolean dontSmooth, CommandContext context) throws WorldEditException {
+    public BrushSettings flattenBrush(Player player, LocalSession session, @Optional("5") Expression radius, @Optional("") final String image, @Optional("0") @Step(90) @Range(min=0, max=360) final int rotation, @Optional("1") final double yscale, @Switch('r') boolean randomRotate, @Switch('l') boolean layers, @Switch('s') boolean dontSmooth, CommandContext context) throws WorldEditException, FileNotFoundException, ParameterException {
         return terrainBrush(player, session, radius, image, rotation, yscale, true, randomRotate, layers, !dontSmooth, ScalableHeightMap.Shape.CONE, context);
     }
 
-    private BrushSettings terrainBrush(Player player, LocalSession session, Expression radius, String image, int rotation, double yscale, boolean flat, boolean randomRotate, boolean layers, boolean smooth, ScalableHeightMap.Shape shape, CommandContext context) throws WorldEditException {
+    private BrushSettings terrainBrush(Player player, LocalSession session, Expression radius, String image, int rotation, double yscale, boolean flat, boolean randomRotate, boolean layers, boolean smooth, ScalableHeightMap.Shape shape, CommandContext context) throws WorldEditException, FileNotFoundException, ParameterException {
         checkMaxBrushRadius(radius);
         InputStream stream = getHeightmapStream(image);
         HeightBrush brush;
@@ -765,35 +768,12 @@ public class BrushCommands extends BrushProcessor {
                 .setSize(radius);
     }
 
-    private InputStream getHeightmapStream(String filename) {
+    private InputStream getHeightmapStream(String filename) throws FileNotFoundException, ParameterException {
         String filenamePng = (filename.endsWith(".png") ? filename : filename + ".png");
         File file = new File(Fawe.imp().getDirectory(), Settings.IMP.PATHS.HEIGHTMAP + File.separator + filenamePng);
-        if (!file.exists()) {
-            if (!filename.equals("#clipboard") && filename.length() >= 7) {
-                try {
-                    URL url;
-                    if (filename.startsWith("http")) {
-                        url = new URL(filename);
-                        if (!url.getHost().equals("i.imgur.com")) {
-                            throw new FileNotFoundException(filename);
-                        }
-                    } else {
-                        url = new URL("https://i.imgur.com/" + filenamePng);
-                    }
-                    ReadableByteChannel rbc = Channels.newChannel(url.openStream());
-                    return Channels.newInputStream(rbc);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        } else if (!filename.equalsIgnoreCase("#clipboard")) {
-            try {
-                return new FileInputStream(file);
-            } catch (FileNotFoundException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        return null;
+        if (file.exists()) return new FileInputStream(file);
+        URI uri = ImageUtil.getImageURI(filename);
+        return ImageUtil.getInputStream(uri);
     }
 
 
