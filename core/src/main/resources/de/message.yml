@@ -166,7 +166,7 @@ worldedit:
     brush_line_primary: Punkt %s0 hinzugefügt, klicke auf eine andere Position um
       die Linie zu erstellen
     brush_line_secondary: Spline erstellt
-    brush_spline_primary_2: Position hinzugefügt, klicke auf die gleiche Postiion
+    brush_spline_primary_2: Position hinzugefügt, klicke auf die gleiche Position
       um zu beginnen!
     brush_catenary_direction: Punkt %s0 hinzugefügt, klicke in die Richtung in der
       du die spline generieren willst
