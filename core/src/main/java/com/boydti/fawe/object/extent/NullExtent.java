@@ -14,6 +14,8 @@ import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.world.biome.BaseBiome;
+
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -120,6 +122,12 @@ public class NullExtent extends FaweRegionExtent {
 
     @Override
     protected Operation commitBefore() {
+        return null;
+    }
+
+    @Nullable
+    @Override
+    public Operation commit() {
         return null;
     }
 

@@ -139,7 +139,7 @@ public class StructureFormat implements ClipboardReader, ClipboardWriter {
                 Map<String, Tag> entityEntryMap = entityEntry.getValue();
                 ListTag posTag = (ListTag) entityEntryMap.get("pos");
                 CompoundTag nbtTag = (CompoundTag) entityEntryMap.get("nbt");
-                String id = ((StringTag) entityEntryMap.get("Id")).getValue();
+                String id = nbtTag.getString("Id");
                 Location location = NBTConversions.toLocation(clipboard, posTag, nbtTag.getListTag("Rotation"));
                 if (!id.isEmpty()) {
                     BaseEntity state = new BaseEntity(id, nbtTag);

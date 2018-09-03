@@ -45,6 +45,7 @@ import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.entity.Player;
+import com.sk89q.worldedit.event.extent.PlayerSaveClipboardEvent;
 import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
@@ -538,6 +539,18 @@ public enum ClipboardFormat {
     public static ClipboardFormat findByAlias(String alias) {
         checkNotNull(alias);
         return aliasMap.get(alias.toLowerCase().trim());
+    }
+
+    @Nullable
+    public static ClipboardFormat findByExtension(String extension) {
+        checkNotNull(extension);
+        extension = extension.toLowerCase();
+        for (ClipboardFormat format : values()) {
+            if (format.getExtension().equalsIgnoreCase(extension)) {
+                return format;
+            }
+        }
+        return null;
     }
 
     /**

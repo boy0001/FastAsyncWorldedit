@@ -201,6 +201,11 @@ public class Fawe {
      * @param s
      */
     public static void debug(Object s) {
+        Actor actor = Request.request().getActor();
+        if (actor != null && actor.isPlayer()) {
+            actor.print(BBC.color(BBC.PREFIX.original() + " " + s));
+            return;
+        }
         debugPlain(BBC.PREFIX.original() + " " + s);
     }
 
@@ -729,7 +734,7 @@ public class Fawe {
     }
 
     public static boolean isMainThread() {
-        return INSTANCE != null ? INSTANCE.thread == Thread.currentThread() : true;
+        return INSTANCE != null ? imp().isMainThread() : true;
     }
 
     /**

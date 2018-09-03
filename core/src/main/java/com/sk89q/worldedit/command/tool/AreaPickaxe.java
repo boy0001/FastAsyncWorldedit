@@ -46,8 +46,8 @@ public class AreaPickaxe implements BlockTool {
         editSession.getSurvivalExtent().setToolUse(config.superPickaxeManyDrop);
 
         for (int x = ox - range; x <= ox + range; ++x) {
-            for (int y = oy - range; y <= oy + range; ++y) {
-                for (int z = oz - range; z <= oz + range; ++z) {
+            for (int z = oz - range; z <= oz + range; ++z) {
+                for (int y = oy + range; y >= oy - range; --y) {
                     if (editSession.getLazyBlock(x, y, z).getId() != initialType) {
                         continue;
                     }

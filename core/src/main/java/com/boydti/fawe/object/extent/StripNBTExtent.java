@@ -28,8 +28,7 @@ public class StripNBTExtent extends AbstractDelegateExtent {
      */
     public StripNBTExtent(Extent extent, Set<String> strip) {
         super(extent);
-        this.
-                strip = strip.toArray(new String[strip.size()]);
+        this.strip = strip.toArray(new String[strip.size()]);
     }
 
     @Override

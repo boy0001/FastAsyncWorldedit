@@ -21,7 +21,10 @@ package com.sk89q.worldedit.session.request;
 
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.LocalSession;
+import com.sk89q.worldedit.entity.Player;
+import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.extent.Extent;
+import com.sk89q.worldedit.util.command.parametric.ParametricCallable;
 import com.sk89q.worldedit.world.World;
 import javax.annotation.Nullable;
 
@@ -30,17 +33,14 @@ import javax.annotation.Nullable;
  */
 public final class Request {
 
-    private static final ThreadLocal<Request> threadLocal =
-            new ThreadLocal<Request>() {
-                @Override
-                protected Request initialValue() {
-                    return new Request();
-                }
-            };
+    private static final ThreadLocal<Request> threadLocal = ThreadLocal.withInitial(Request::new);
 
     private
     @Nullable
     World world;
+    private
+    @Nullable
+    Actor actor;
     private
     @Nullable
     LocalSession session;
@@ -85,6 +85,15 @@ public final class Request {
         if (editSession != null) return editSession;
         if (world != null) return world;
         return null;
+    }
+
+    @Nullable
+    public Actor getActor() {
+        return actor;
+    }
+
+    public void setActor(@Nullable Actor actor) {
+        this.actor = actor;
     }
 
     /**
@@ -143,7 +152,8 @@ public final class Request {
         threadLocal.remove();
     }
 
-    public static Class<?> inject() {
+
+    public static Class<Request> inject() {
         return Request.class;
     }
 }

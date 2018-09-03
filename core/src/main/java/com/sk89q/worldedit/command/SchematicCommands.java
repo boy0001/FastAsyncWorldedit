@@ -45,6 +45,7 @@ import com.sk89q.worldedit.event.extent.PlayerSaveClipboardEvent;
 import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
+import com.sk89q.worldedit.extent.clipboard.ClipboardFormats;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardWriter;
 import com.sk89q.worldedit.function.operation.Operations;
@@ -54,6 +55,8 @@ import com.sk89q.worldedit.util.command.binding.Switch;
 import com.sk89q.worldedit.util.command.parametric.Optional;
 import com.sk89q.worldedit.util.io.file.FilenameException;
 import com.sk89q.worldedit.world.registry.WorldData;
+
+import javax.annotation.Nullable;
 import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -69,6 +72,7 @@ import java.util.regex.Pattern;
 
 
 import static com.boydti.fawe.util.ReflectionUtils.as;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Commands that work with schematic files.
@@ -187,16 +191,26 @@ public class SchematicCommands extends MethodCommands {
         player.print(BBC.getPrefix() + "Remapped schematic");
     }
 
+    private File resolve(File dir, String filename, @Nullable ClipboardFormat format) {
+        if (format != null) {
+            if (!filename.matches(".*\\.[\\w].*")) {
+                filename = filename + "." + format.getExtension();
+            }
+            return MainUtil.resolveRelative(new File(dir, filename));
+        }
+        for (ClipboardFormat f : ClipboardFormat.values()) {
+            File file = MainUtil.resolveRelative(new File(dir, filename + "." + f.getExtension()));
+            if (file.exists()) return file;
+        }
+        return null;
+    }
+
     @Command(aliases = {"load"}, usage = "[<format>] <filename>", desc = "Load a schematic into your clipboard")
     @Deprecated
     @CommandPermissions({"worldedit.clipboard.load", "worldedit.schematic.load", "worldedit.schematic.upload", "worldedit.schematic.load.other"})
-    public void load(final Player player, final LocalSession session, @Optional("schematic") final String formatName, String filename) throws FilenameException {
+    public void load(final Player player, final LocalSession session, @Optional() final String formatName, String filename) throws FilenameException {
         final LocalConfiguration config = this.worldEdit.getConfiguration();
-        final ClipboardFormat format = ClipboardFormat.findByAlias(formatName);
-        if (format == null) {
-            BBC.CLIPBOARD_INVALID_FORMAT.send(player, formatName);
-            return;
-        }
+        ClipboardFormat format = formatName == null ? null : ClipboardFormat.findByAlias(formatName);
         InputStream in = null;
         try {
             URI uri;
@@ -220,8 +234,14 @@ public class SchematicCommands extends MethodCommands {
                 File dir = Settings.IMP.PATHS.PER_PLAYER_SCHEMATICS ? new File(working, player.getUniqueId().toString()) : working;
                 File f;
                 if (filename.startsWith("#")) {
-                    f = player.openFileOpenDialog(new String[] { format.getExtension() });
-                    if (!f.exists()) {
+                    String[] extensions;
+                    if (format != null) {
+                        extensions = new String[] { format.getExtension() };
+                    } else {
+                        extensions = ClipboardFormats.getFileExtensionArray();
+                    }
+                    f = player.openFileOpenDialog(extensions);
+                    if (f == null || !f.exists()) {
                         player.printError("Schematic " + filename + " does not exist! (" + f + ")");
                         return;
                     }
@@ -230,32 +250,30 @@ public class SchematicCommands extends MethodCommands {
                         BBC.NO_PERM.send(player, "worldedit.schematic.load.other");
                         return;
                     }
-                    if (!filename.matches(".*\\.[\\w].*")) {
-                        filename += "." + format.getExtension();
+                    if (format == null && filename.matches(".*\\.[\\w].*")) {
+                        String extension = filename.substring(filename.lastIndexOf('.') + 1, filename.length());
+                        format = ClipboardFormat.findByExtension(extension);
                     }
-                    f = MainUtil.resolveRelative(new File(dir, filename));
+                    f = resolve(dir, filename, format);
                 }
-                if (f.getName().replaceAll("." + format.getExtension(), "").isEmpty()) {
-                    File directory = f.getParentFile();
-                    if (directory.exists()) {
-                        int max = MainUtil.getMaxFileId(directory) - 1;
-                        f = new File(directory, max + "." + format.getExtension());
-                    } else {
-                        f = new File(directory, "1." + format.getExtension());
-                    }
-                }
-                if (!f.exists()) {
+                if (f == null || !f.exists()) {
                     if (!filename.contains("../")) {
                         dir = this.worldEdit.getWorkingDirectoryFile(config.saveDir);
-                        f = this.worldEdit.getSafeSaveFile(player, dir, filename, format.getExtension(), format.getExtension());
+                        f = resolve(dir, filename, format);
                     }
                 }
-                if (!f.exists() || !MainUtil.isInSubDirectory(working, f)) {
+                if (f == null || !f.exists() || !MainUtil.isInSubDirectory(working, f)) {
                     player.printError("Schematic " + filename + " does not exist! (" + f.exists() + "|" + f + "|" + (!MainUtil.isInSubDirectory(working, f)) + ")");
                     return;
                 }
+                if (format == null) {
+                    format = ClipboardFormat.findByFile(f);
+                    if (format == null) {
+                        BBC.CLIPBOARD_INVALID_FORMAT.send(player, f.getName());
+                        return;
+                    }
+                }
                 in = new FileInputStream(f);
-
                 uri = f.toURI();
             }
             format.hold(player, uri, in);

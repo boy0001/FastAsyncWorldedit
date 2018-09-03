@@ -169,7 +169,6 @@ public class SessionManager {
         checkNotNull(owner);
 
         LocalSession session = getIfPresent(owner);
-        LocalConfiguration config = worldEdit.getConfiguration();
         SessionKey sessionKey = owner.getSessionKey();
 
         // No session exists yet -- create one
@@ -182,12 +181,14 @@ public class SessionManager {
                 session = new LocalSession();
             }
 
+            LocalConfiguration config = worldEdit.getConfiguration();
             session.setConfiguration(config);
             session.setBlockChangeLimit(config.defaultChangeLimit);
 
             sessions.put(getKey(owner), new SessionHolder(sessionKey, session));
         }
 
+        LocalConfiguration config = worldEdit.getConfiguration();
         // Set the limit on the number of blocks that an operation can
         // change at once, or don't if the owner has an override or there
         // is no limit. There is also a default limit

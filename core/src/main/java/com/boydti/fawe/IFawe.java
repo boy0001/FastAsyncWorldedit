@@ -65,4 +65,8 @@ public interface IFawe {
     public default FormBuilder getFormBuilder() {
         return null;
     }
+
+    default boolean isMainThread() {
+        return Fawe.get().getMainThread() == Thread.currentThread();
+    }
 }

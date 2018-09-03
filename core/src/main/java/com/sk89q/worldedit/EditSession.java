@@ -364,19 +364,6 @@ public class EditSession extends AbstractDelegateExtent implements HasFaweQueue,
     }
 
     /**
-     * Lazily copy a region
-     *
-     * @param region
-     * @return
-     */
-    public BlockArrayClipboard lazyCopy(Region region) {
-        WorldCopyClipboard faweClipboard = new WorldCopyClipboard(this, region);
-        BlockArrayClipboard weClipboard = new BlockArrayClipboard(region, faweClipboard);
-        weClipboard.setOrigin(region.getMinimumPoint());
-        return weClipboard;
-    }
-
-    /**
      * The limit for this specific edit (blocks etc)
      *
      * @return
@@ -2865,9 +2852,7 @@ public class EditSession extends AbstractDelegateExtent implements HasFaweQueue,
                 distribution.add(new Countable<BaseBlock>(FaweCache.CACHE_BLOCK[i], count));
             }
         }
-        Collections.sort(distribution);
         // Collections.reverse(distribution);
-
         return distribution;
     }
 

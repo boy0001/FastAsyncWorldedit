@@ -21,10 +21,9 @@ import com.sk89q.worldedit.blocks.BlockMaterial;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import com.sk89q.worldedit.world.registry.BundledBlockData;
-import java.util.ArrayDeque;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.UUID;
+
+import java.lang.reflect.InvocationTargetException;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
@@ -409,7 +408,7 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, CHUNKSECTIONS, SECTION> impl
         if (chunk != null) {
             return chunk;
         }
-        boolean sync = Thread.currentThread() == Fawe.get().getMainThread();
+        boolean sync = Fawe.isMainThread();
         if (sync) {
             return loadChunk(getWorld(), cx, cz, true);
         } else if (getSettings().HISTORY.CHUNK_WAIT_MS > 0) {

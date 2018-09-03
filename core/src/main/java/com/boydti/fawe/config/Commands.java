@@ -30,6 +30,47 @@ public class Commands {
         }
     }
 
+    public static Command fromArgs(String[] aliases, String usage, String desc, int min, int max, String flags, String help, boolean queued /* ignored */) {
+        return new Command() {
+            @Override
+            public Class<? extends Annotation> annotationType() {
+                return Command.class;
+            }
+            @Override
+            public String[] aliases() {
+                return aliases;
+            }
+            @Override
+            public String usage() {
+                return usage;
+            }
+            @Override
+            public String desc() {
+                return desc;
+            }
+            @Override
+            public int min() {
+                return min;
+            }
+            @Override
+            public int max() {
+                return max;
+            }
+            @Override
+            public String flags() {
+                return flags;
+            }
+            @Override
+            public String help() {
+                return help;
+            }
+            @Override
+            public boolean anyFlags() {
+                return !(flags.isEmpty() || flags.matches("[a-z]+"));
+            }
+        };
+    }
+
     public static Command translate(Class clazz, final Command command) {
         if (cmdConfig == null || command instanceof TranslatedCommand) {
             return command;

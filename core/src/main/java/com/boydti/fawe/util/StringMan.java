@@ -10,6 +10,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.IntConsumer;
+import java.util.function.IntFunction;
 
 public class StringMan {
     public static String replaceFromMap(final String string, final Map<String, String> replacements) {
@@ -31,6 +33,85 @@ public class StringMan {
             }
         }
         return sb.toString();
+    }
+
+    public static boolean containsAny(CharSequence sequence, String any) {
+        for (int i = 0; i < sequence.length(); i++) {
+            if (any.indexOf(sequence.charAt(i)) != -1) return true;
+        }
+        return false;
+    }
+
+    public static int findMatchingBracket(CharSequence sequence, int index) {
+        char startC = sequence.charAt(index);
+        char lookC = getMatchingBracket(startC);
+        if (lookC == startC) return -1;
+        boolean forward = isBracketForwards(startC);
+        int increment = forward ? 1 : -1;
+        int end = forward ? sequence.length() : -1;
+        int count = 0;
+        for (int i = index + increment; i != end; i += increment) {
+            char c = sequence.charAt(i);
+            if (c == startC) {
+                count++;
+            } else if (c == lookC && count-- == 0) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public static String prettyFormat(double d) {
+        if (d == Double.MIN_VALUE) return "-∞";
+        if (d == Double.MAX_VALUE) return "∞";
+        if(d == (long) d) return String.format("%d",(long)d);
+        else return String.format("%s",d);
+    }
+
+    public static boolean isBracketForwards(char c) {
+        switch (c) {
+            case '[':
+            case '(':
+            case '{':
+            case '<':
+                return true;
+            default: return false;
+        }
+    }
+
+    public static char getMatchingBracket(char c) {
+        switch (c) {
+            case '[': return ']';
+            case '(': return ')';
+            case '{': return '}';
+            case '<': return '>';
+            case ']': return '[';
+            case ')': return '(';
+            case '}': return '{';
+            case '>': return '<';
+            default: return c;
+        }
+    }
+
+    public static int parseInt(CharSequence string) {
+        int val = 0;
+        boolean neg = false;
+        int numIndex = 1;
+        int len = string.length();
+        outer:
+        for (int i = len - 1; i >= 0; i--) {
+            char c = string.charAt(i);
+            switch (c) {
+                case '-':
+                    val = -val;
+                    break;
+                default:
+                    val = val + (c - 48) * numIndex;
+                    numIndex *= 10;
+                    break;
+            }
+        }
+        return val;
     }
 
     public static String removeFromSet(final String string, final Collection<String> replacements) {
@@ -189,7 +270,7 @@ public class StringMan {
         return true;
     }
 
-    public static boolean isAlphanumericUnd(final String str) {
+    public static boolean isAlphanumericUnd(final CharSequence str) {
         for (int i = 0; i < str.length(); i++) {
             final char c = str.charAt(i);
             if ((c < 0x30) || ((c >= 0x3a) && (c <= 0x40)) || ((c > 0x5a) && (c <= 0x60)) || (c > 0x7a) || (c == '_')) {

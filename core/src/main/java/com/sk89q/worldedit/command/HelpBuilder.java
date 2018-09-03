@@ -8,7 +8,8 @@ import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.extension.platform.CommandManager;
 import com.sk89q.worldedit.util.command.*;
-import com.sk89q.worldedit.util.command.parametric.ParametricCallable;
+import com.sk89q.worldedit.util.command.parametric.AParametricCallable;
+
 import java.util.*;
 
 public abstract class HelpBuilder implements Runnable {
@@ -69,13 +70,12 @@ public abstract class HelpBuilder implements Runnable {
                         if (c instanceof DelegateCallable) {
                             c = ((DelegateCallable) c).getParent();
                         }
-                        if (c instanceof ParametricCallable) {
-                            Object obj = ((ParametricCallable) c).getObject();
-                            Command command = obj.getClass().getAnnotation(Command.class);
+                        if (c instanceof AParametricCallable) {
+                            Command command = ((AParametricCallable) c).getCommand();
                             if (command != null && command.aliases().length != 0) {
                                 group = command.aliases()[0];
                             } else {
-                                group = obj.getClass().getSimpleName().replaceAll("Commands", "").replaceAll("Util$", "");
+                                group = ((AParametricCallable) c).getGroup();
                             }
                         } else if (c instanceof Dispatcher) {
                             group = mapping.getPrimaryAlias();

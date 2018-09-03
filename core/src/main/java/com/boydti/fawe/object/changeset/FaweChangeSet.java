@@ -265,30 +265,34 @@ public abstract class FaweChangeSet implements ChangeSet {
                             int bz = cz << 4;
                             synchronized (FaweChangeSet.this) {
                                 // Biome changes
-                                if (previous.getBiomeArray() != null) {
-                                    byte[] previousBiomes = previous.getBiomeArray();
+                                {
                                     byte[] nextBiomes = next.getBiomeArray();
-                                    int index = 0;
-                                    for (int z = 0; z < 16; z++) {
-                                        int zz = bz + z;
-                                        for (int x = 0; x < 16; x++) {
-                                            byte idFrom = previousBiomes[index];
-                                            byte idTo = nextBiomes[index];
-                                            if (idFrom != idTo && idTo != 0) {
-                                                addBiomeChange(bx + x, zz, FaweCache.getBiome(idFrom & 0xFF), FaweCache.getBiome(idTo & 0xFF));
+                                    if (nextBiomes != null) {
+                                        byte[] previousBiomes = previous.getBiomeArray();
+                                        if (previousBiomes != null) {
+
+                                            int index = 0;
+                                            for (int z = 0; z < 16; z++) {
+                                                int zz = bz + z;
+                                                for (int x = 0; x < 16; x++) {
+                                                    byte idFrom = previousBiomes[index];
+                                                    byte idTo = nextBiomes[index];
+                                                    if (idFrom != idTo && idTo != 0) {
+                                                        addBiomeChange(bx + x, zz, FaweCache.getBiome(idFrom & 0xFF), FaweCache.getBiome(idTo & 0xFF));
+                                                    }
+                                                    index++;
+                                                }
                                             }
-                                            index++;
                                         }
                                     }
-                                    // TODO
                                 }
                                 // Block changes
                                 for (int layer = 0; layer < layers; layer++) {
                                     char[] currentLayer = next.getIdArray(layer);
-                                    char[] previousLayer = previous.getIdArray(layer);
                                     if (currentLayer == null) {
                                         continue;
                                     }
+                                    char[] previousLayer = previous.getIdArray(layer);
                                     int startY = layer << 4;
                                     int index = 0;
                                     for (int y = 0; y < 16; y++) {

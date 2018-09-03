@@ -6,11 +6,8 @@ import com.sk89q.worldedit.extension.input.InputParseException;
 import com.sk89q.worldedit.extension.input.ParserContext;
 import com.sk89q.worldedit.internal.registry.InputParser;
 import com.sk89q.worldedit.util.command.Dispatcher;
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+
+import java.util.*;
 
 public abstract class FaweParser<T> extends InputParser<T> {
     protected FaweParser(WorldEdit worldEdit) {
@@ -28,27 +25,13 @@ public abstract class FaweParser<T> extends InputParser<T> {
 
     public abstract Dispatcher getDispatcher();
 
-    public List<String> suggestRemaining(String input, String... expected) throws InputParseException {
-        List<String> remainder = StringMan.split(input, ':');
-        int len = remainder.size();
-        if (len != expected.length - 1) {
-            if (len <= expected.length - 1 && len != 0) {
-                if (remainder.get(len - 1).endsWith(":")) {
-                    throw new SuggestInputParseException(null, StringMan.join(expected, ":"));
-                }
-                throw new SuggestInputParseException(null, expected[0] + ":" + input + ":" + StringMan.join(Arrays.copyOfRange(expected, len + 1, 3), ":"));
-            } else {
-                throw new SuggestInputParseException(null, StringMan.join(expected, ":"));
-            }
-        }
-        return remainder;
-    }
-
     protected static class ParseEntry {
         public boolean and;
         public String input;
+        public String full;
 
-        public ParseEntry(String input, boolean type) {
+        public ParseEntry(String full, String input, boolean type) {
+            this.full = full;
             this.input = input;
             this.and = type;
         }
@@ -59,66 +42,54 @@ public abstract class FaweParser<T> extends InputParser<T> {
         }
     }
 
-    public List<Map.Entry<ParseEntry, List<String>>> parse(String command) throws InputParseException {
+    public static List<Map.Entry<ParseEntry, List<String>>> parse(String toParse) throws InputParseException {
         List<Map.Entry<ParseEntry, List<String>>> keys = new ArrayList<>();
-        List<String> args = new ArrayList<>();
-        int len = command.length();
-        String current = null;
-        int end = -1;
-        boolean newEntry = true;
-        for (int i = 0; i < len; i++) {
-            int prefix = 0;
-            boolean or = false;
-            char c = command.charAt(i);
-            if (i < end) continue;
+        List<String> inputs = new ArrayList<>();
+        List<Boolean> and = new ArrayList<>();
+        int last = 0;
+        outer:
+        for (int i = 0; i < toParse.length(); i++) {
+            char c = toParse.charAt(i);
             switch (c) {
+                case ',':
                 case '&':
-                    or = true;
-                case ',': {
-                    prefix = 1;
-                    if (current == null) {
-                        throw new InputParseException("Duplicate separator");
+                    String result = toParse.substring(last, i);
+                    if (!result.isEmpty()) {
+                        inputs.add(result);
+                        and.add(c == '&');
+                    } else {
+                        throw new InputParseException("Invalid dangling character " + c);
                     }
-                    newEntry = true;
-                    break;
-                }
-                case '[': {
-                    int depth = 0;
-                    end = len;
-                    loop:
-                    for (int j = i + 1; j < len; j++) {
-                        char c2 = command.charAt(j);
-                        switch (c2) {
-                            case '[':
-                                depth++;
-                                continue;
-                            case ']':
-                                if (depth-- <= 0) {
-                                    end = j;
-                                    break loop;
-                                }
+                    last = i + 1;
+                    continue outer;
+                default:
+                    if (StringMan.getMatchingBracket(c) != c) {
+                        int next = StringMan.findMatchingBracket(toParse, i);
+                        if (next != -1) {
+                            i = next;
+                        } else {
+                            toParse += "]";
+                            i = toParse.length();
                         }
+                        continue outer;
                     }
-                    String arg = command.substring(i + 1, end);
-                    args.add(arg);
-                    break;
-                }
-            }
-            if (newEntry) {
-                newEntry = false;
-                int index = StringMan.indexOf(command, Math.max(i, end) + prefix, '[', '&', ',');
-                if (index < 0) index = len;
-                end = index;
-                current = command.substring(i + prefix, end);
-                if (prefix == 1) args = new ArrayList<>();
-                ParseEntry entry = new ParseEntry(current, or);
-                keys.add(new AbstractMap.SimpleEntry<>(entry, args));
             }
         }
-        for (int i = 0; i < keys.size() - 1; i++) { // Apply greedy and
-            if (keys.get(i + 1).getKey().and) {
-                keys.get(i).getKey().and = true;
+        inputs.add(toParse.substring(last, toParse.length()));
+        for (int i = 0; i < inputs.size(); i++) {
+            String full = inputs.get(i);
+            String command = full;
+            List<String> args = new ArrayList<>();
+            while (!command.isEmpty() && command.charAt(command.length() - 1) == ']') {
+                int startPos = StringMan.findMatchingBracket(command, command.length() - 1);
+                if (startPos == -1) break;
+                String arg = command.substring(startPos + 1, command.length() - 1);
+                args.add(arg);
+                command = full.substring(0, startPos);
             }
+            Collections.reverse(args);
+            ParseEntry entry = new ParseEntry(full, command, i > 0 ? and.get(i - 1) : false);
+            keys.add(new AbstractMap.SimpleEntry<>(entry, args));
         }
         return keys;
     }

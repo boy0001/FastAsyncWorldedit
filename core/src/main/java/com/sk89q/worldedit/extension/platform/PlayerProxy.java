@@ -1,6 +1,8 @@
 package com.sk89q.worldedit.extension.platform;
 
+import com.boydti.fawe.util.ReflectionUtils;
 import com.google.common.base.Preconditions;
+import com.sk89q.util.ReflectionUtil;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.WorldVector;
@@ -13,7 +15,13 @@ import com.sk89q.worldedit.internal.cui.CUIEvent;
 import com.sk89q.worldedit.session.SessionKey;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.world.World;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
 public class PlayerProxy extends AbstractPlayerActor {

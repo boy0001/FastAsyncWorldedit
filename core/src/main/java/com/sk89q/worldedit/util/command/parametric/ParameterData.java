@@ -23,9 +23,13 @@ import com.sk89q.worldedit.util.command.SimpleParameter;
 import com.sk89q.worldedit.util.command.binding.PrimitiveBindings;
 import com.sk89q.worldedit.util.command.binding.Range;
 import com.sk89q.worldedit.util.command.binding.Text;
+
+import javax.xml.ws.Provider;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.util.concurrent.Callable;
+import java.util.function.Supplier;
 
 /**
  * Describes a parameter in detail.
@@ -155,6 +159,10 @@ public class ParameterData extends SimpleParameter {
      * Validate this parameter and its binding.
      */
     public void validate(Method method, int parameterIndex) throws ParametricException {
+        validate(() -> method.toGenericString(), parameterIndex);
+    }
+
+    public void validate(Supplier<String> method, int parameterIndex) throws ParametricException {
         // We can't have indeterminate consumers without @Switches otherwise
         // it may screw up parameter processing for later bindings
         BindingBehavior behavior = getBinding().getBehavior(this);
@@ -166,7 +174,7 @@ public class ParameterData extends SimpleParameter {
                             getBinding().getClass().getCanonicalName() +
                             "\nmay or may not consume parameters (isIndeterminateConsumer(" + type + ") = true)" +
                             "\nand therefore @Switch(flag) is required for parameter #" + parameterIndex + " of \n" +
-                            method.toGenericString());
+                            method.get());
         }
 
         // getConsumedCount() better return -1 if the BindingBehavior is not CONSUMES
@@ -176,7 +184,7 @@ public class ParameterData extends SimpleParameter {
                             getBinding().getClass().getCanonicalName() +
                             "\neven though its behavior type is " + behavior.name() +
                             "\nfor parameter #" + parameterIndex + " of \n" +
-                            method.toGenericString());
+                            method.get());
         }
 
         // getConsumedCount() should not return 0 if the BindingBehavior is not PROVIDES
@@ -186,7 +194,7 @@ public class ParameterData extends SimpleParameter {
                             getBinding().getClass().getCanonicalName() +
                             "\nwhen its behavior type is " + behavior.name() + " and not PROVIDES " +
                             "\nfor parameter #" + parameterIndex + " of \n" +
-                            method.toGenericString());
+                            method.get());
         }
     }
 

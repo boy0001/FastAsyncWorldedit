@@ -627,6 +627,11 @@ public class FaweBukkit implements IFawe, Listener {
         return ((BlocksHubBukkit) blocksHubPlugin).getApi();
     }
 
+    @Override
+    public boolean isMainThread() {
+        return Bukkit.isPrimaryThread();
+    }
+
     private Version version = null;
 
     public Version getVersion() {

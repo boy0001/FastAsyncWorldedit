@@ -1,8 +1,10 @@
 package com.sk89q.worldedit.extension.factory;
 
 import com.boydti.fawe.command.FaweParser;
+import com.boydti.fawe.command.SuggestInputParseException;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.util.StringMan;
+import com.sk89q.minecraft.util.commands.CommandException;
 import com.sk89q.minecraft.util.commands.CommandLocals;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.blocks.BaseBlock;
@@ -22,11 +24,13 @@ import com.sk89q.worldedit.session.request.Request;
 import com.sk89q.worldedit.util.command.Dispatcher;
 import com.sk89q.worldedit.util.command.SimpleDispatcher;
 import com.sk89q.worldedit.util.command.parametric.ParametricBuilder;
+
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class DefaultMaskParser extends FaweParser<Mask> {
     private final Dispatcher dispatcher;
@@ -52,23 +56,27 @@ public class DefaultMaskParser extends FaweParser<Mask> {
 
     @Override
     public Mask parseFromInput(String input, ParserContext context) throws InputParseException {
-        if (input.isEmpty()) return null;
+        if (input.isEmpty()) {
+            throw new SuggestInputParseException("No input provided", "", () -> Stream.of("#", ",", "&").map(n -> n + ":").collect(Collectors.toList())
+                // TODO namespaces
+            );
+        }
         Extent extent = Request.request().getExtent();
         if (extent == null) extent = context.getExtent();
-        HashSet<BaseBlock> blocks = new HashSet<BaseBlock>();
-        List<Mask> intersection = new ArrayList<>();
-        List<Mask> union = new ArrayList<>();
+        List<List<Mask>> masks = new ArrayList<>();
+        masks.add(new ArrayList<>());
+
         final CommandLocals locals = new CommandLocals();
         Actor actor = context != null ? context.getActor() : null;
         if (actor != null) {
             locals.put(Actor.class, actor);
         }
-        //
         try {
             List<Map.Entry<ParseEntry, List<String>>> parsed = parse(input);
             for (Map.Entry<ParseEntry, List<String>> entry : parsed) {
                 ParseEntry pe = entry.getKey();
-                String command = pe.input;
+                final String command = pe.input;
+                String full = pe.full;
                 Mask mask = null;
                 if (command.isEmpty()) {
                     mask = parseFromInput(StringMan.join(entry.getValue(), ','), context);
@@ -79,101 +87,116 @@ public class DefaultMaskParser extends FaweParser<Mask> {
                     if (charMask && input.charAt(0) == '=') {
                         return parseFromInput(char0 + "[" + input.substring(1) + "]", context);
                     }
-                    if (mask == null) {
-                        // Legacy syntax
-                        if (charMask) {
-                            switch (char0) {
-                                case '\\': //
-                                case '/': //
-                                case '{': //
-                                case '$': //
-                                case '%': {
-                                    command = command.substring(1);
-                                    String value = command + ((entry.getValue().isEmpty()) ? "" : "[" + StringMan.join(entry.getValue(), "][") + "]");
-                                    if (value.contains(":")) {
-                                        if (value.charAt(0) == ':') value.replaceFirst(":", "");
-                                        value = value.replaceAll(":", "][");
-                                    }
-                                    mask = parseFromInput(char0 + "[" + value + "]", context);
-                                    break;
+                    if (char0 == '#') {
+                        throw new SuggestInputParseException(new NoMatchException("Unkown mask: " + full + ", See: //masks"), full,
+                                () -> {
+                                    if (full.length() == 1) return new ArrayList<>(dispatcher.getPrimaryAliases());
+                                    return dispatcher.getAliases().stream().filter(
+                                            s -> s.startsWith(command.toLowerCase())
+                                    ).collect(Collectors.toList());
                                 }
-                                case '|':
-                                case '~':
-                                case '<':
-                                case '>':
-                                case '!':
-                                    input = input.substring(input.indexOf(char0) + 1);
-                                    mask = parseFromInput(char0 + "[" + input + "]", context);
-                                    if (actor != null) {
-                                        BBC.COMMAND_CLARIFYING_BRACKET.send(actor, char0 + "[" + input + "]");
-                                    }
-                                    return mask;
+                        );
+                    }
+                    // Legacy syntax
+                    if (charMask) {
+                        switch (char0) {
+                            case '\\': //
+                            case '/': //
+                            case '{': //
+                            case '$': //
+                            case '%': {
+                                String value = command.substring(1) + ((entry.getValue().isEmpty()) ? "" : "[" + StringMan.join(entry.getValue(), "][") + "]");
+                                if (value.contains(":")) {
+                                    if (value.charAt(0) == ':') value.replaceFirst(":", "");
+                                    value = value.replaceAll(":", "][");
+                                }
+                                mask = parseFromInput("#" + char0 + "[" + value + "]", context);
+                                break;
                             }
+                            case '|':
+                            case '~':
+                            case '<':
+                            case '>':
+                            case '!':
+                                input = input.substring(input.indexOf(char0) + 1);
+                                mask = parseFromInput(char0 + "[" + input + "]", context);
+                                if (actor != null) {
+                                    BBC.COMMAND_CLARIFYING_BRACKET.send(actor, char0 + "[" + input + "]");
+                                }
+                                return mask;
                         }
-                        if (mask == null) {
-                            if (command.startsWith("[")) {
-                                int end = command.lastIndexOf(']');
-                                mask = parseFromInput(command.substring(1, end == -1 ? command.length() : end), context);
-                            } else {
-                                try {
-                                    context.setPreferringWildcard(true);
-                                    context.setRestricted(false);
-                                    BaseBlock block = worldEdit.getBlockFactory().parseFromInput(command, context);
-                                    if (pe.and) {
-                                        mask = new BlockMask(extent, block);
-                                    } else {
-                                        blocks.add(block);
-                                        continue;
-                                    }
-                                } catch (NoMatchException e) {
-                                    throw new NoMatchException(e.getMessage() + " See: //masks");
-                                }
-                            }
+                    }
+                    if (mask == null) {
+                        if (command.startsWith("[")) {
+                            int end = command.lastIndexOf(']');
+                            mask = parseFromInput(command.substring(1, end == -1 ? command.length() : end), context);
+                        } else {
+                            context.setPreferringWildcard(true);
+                            context.setRestricted(false);
+                            BaseBlock block = worldEdit.getBlockFactory().parseFromInput(command, context);
+                            mask = new BlockMask(extent, block);
                         }
                     }
                 } else {
                     List<String> args = entry.getValue();
-                    if (!args.isEmpty()) {
-                        command += " " + StringMan.join(args, " ");
+                    String cmdArgs = ((args.isEmpty()) ? "" : " " + StringMan.join(args, " "));
+                    try {
+                        mask = (Mask) dispatcher.call(command + cmdArgs, locals, new String[0]);
+                    } catch (Throwable e) {
+                        throw SuggestInputParseException.of(e, full, () -> {
+                            try {
+                                List<String> suggestions = dispatcher.get(command).getCallable().getSuggestions(cmdArgs, locals);
+                                if (suggestions.size() <= 2) {
+                                    for (int i = 0; i < suggestions.size(); i++) {
+                                        String suggestion = suggestions.get(i);
+                                        if (suggestion.indexOf(' ') != 0) {
+                                            String[] split = suggestion.split(" ");
+                                            suggestion = BBC.color("[" + StringMan.join(split, "][") + "]");
+                                            suggestions.set(i, suggestion);
+                                        }
+                                    }
+                                }
+                                return suggestions;
+                            } catch (CommandException e1) {
+                                throw new InputParseException(e1.getMessage());
+                            } catch (Throwable e2) {
+                                e2.printStackTrace();
+                                throw new InputParseException(e2.getMessage());
+                            }
+                        });
                     }
-                    mask = (Mask) dispatcher.call(command, locals, new String[0]);
                 }
-                if (pe.and) { // &
-                    intersection.add(mask);
-                } else {
-                    if (!intersection.isEmpty()) {
-                        if (intersection.size() == 1) {
-                            throw new InputParseException("Error, floating &");
-                        }
-                        union.add(new MaskIntersection(intersection));
-                        intersection.clear();
-                    }
-                    union.add(mask);
+                if (pe.and) {
+                    masks.add(new ArrayList<>());
                 }
+                masks.get(masks.size() - 1).add(mask);
             }
+        } catch (InputParseException rethrow) {
+            throw rethrow;
         } catch (Throwable e) {
+            InputParseException ips = SuggestInputParseException.find(e);
+            if (ips != null) throw ips;
+            e.printStackTrace();
             throw new InputParseException(e.getMessage(), e);
         }
-        if (!blocks.isEmpty()) {
-            union.add(new BlockMask(extent, blocks));
-        }
-        if (!intersection.isEmpty()) {
-            if (intersection.size() == 1) {
-                throw new InputParseException("Error, floating &");
+        List<Mask> maskUnions = new ArrayList<>();
+        for (List<Mask> maskList : masks) {
+            if (maskList.size() == 1) {
+                maskUnions.add(maskList.get(0));
+            } else if (maskList.size() != 0) {
+                maskUnions.add(new MaskUnion(maskList));
             }
-            union.add(new MaskIntersection(intersection));
-            intersection.clear();
         }
-        if (union.isEmpty()) {
-            return null;
-        } else if (union.size() == 1) {
-            return union.get(0);
+        if (maskUnions.size() == 1) {
+            return maskUnions.get(0);
+        } else if (maskUnions.size() != 0) {
+            return new MaskIntersection(maskUnions);
         } else {
-            return new MaskUnion(union);
+            return null;
         }
     }
 
-    public static Class<?> inject() {
+    public static Class<DefaultMaskParser> inject() {
         return DefaultMaskParser.class;
     }
 }

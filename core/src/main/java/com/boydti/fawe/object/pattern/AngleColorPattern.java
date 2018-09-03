@@ -48,7 +48,7 @@ public class AngleColorPattern extends DataAnglePattern {
             int height = extent.getNearestSurfaceTerrainBlock(x, z, y, 0, maxY);
             if (height > 0) {
                 BaseBlock below = extent.getLazyBlock(x, height - 1, z);
-                if (FaweCache.canPassThrough(block.getId(), block.getData())) {
+                if (FaweCache.canPassThrough(below.getId(), below.getData())) {
                     return Integer.MAX_VALUE;
                 }
             }
