@@ -63,7 +63,7 @@ public abstract class FaweParser<T> extends InputParser<T> {
                     last = i + 1;
                     continue outer;
                 default:
-                    if (StringMan.getMatchingBracket(c) != c) {
+                    if (c == '[') {
                         int next = StringMan.findMatchingBracket(toParse, i);
                         if (next != -1) {
                             i = next;
