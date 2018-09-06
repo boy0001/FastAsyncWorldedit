@@ -31,6 +31,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.zip.*;
 import javax.imageio.ImageIO;
@@ -885,7 +886,7 @@ public class MainUtil {
         return isInSubDirectory(dir, file.getParentFile());
     }
 
-    public static void iterateFiles(File directory, RunnableVal<File> task) {
+    public static void iterateFiles(File directory, Consumer<File> task) {
         if (directory.exists()) {
             File[] files = directory.listFiles();
             if (null != files) {
@@ -893,7 +894,7 @@ public class MainUtil {
                     if (files[i].isDirectory()) {
                         iterateFiles(files[i], task);
                     } else {
-                        task.run(files[i]);
+                        task.accept(files[i]);
                     }
                 }
             }
