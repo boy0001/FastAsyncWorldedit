@@ -363,7 +363,7 @@ public class BrushCommands extends BrushProcessor {
             max = -1
     )
     @CommandPermissions("worldedit.brush.stencil")
-    public BrushSettings stencilBrush(Player player, EditSession editSession, LocalSession session, Pattern fill, @Optional("5") Expression radius, @Optional("") final String image, @Optional("0") @Step(90) @Range(min=0, max=360) final int rotation, @Optional("1") final double yscale, @Switch('w') boolean onlyWhite, @Switch('r') boolean randomRotate, CommandContext context) throws WorldEditException, FileNotFoundException, ParameterException {
+    public BrushSettings stencilBrush(Player player, EditSession editSession, LocalSession session, Pattern fill, @Optional("5") Expression radius, @Optional() final String image, @Optional("0") @Step(90) @Range(min=0, max=360) final int rotation, @Optional("1") final double yscale, @Switch('w') boolean onlyWhite, @Switch('r') boolean randomRotate, CommandContext context) throws WorldEditException, FileNotFoundException, ParameterException {
         checkMaxBrushRadius(radius);
         InputStream stream = getHeightmapStream(image);
         HeightBrush brush;
@@ -704,7 +704,7 @@ public class BrushCommands extends BrushProcessor {
             max = 4
     )
     @CommandPermissions("worldedit.brush.height")
-    public BrushSettings heightBrush(Player player, LocalSession session, @Optional("5") Expression radius, @Optional("") final String image, @Optional("0") @Step(90) @Range(min=0, max=360) final int rotation, @Optional("1") final double yscale, @Switch('r') boolean randomRotate, @Switch('l') boolean layers, @Switch('s') boolean dontSmooth, CommandContext context) throws WorldEditException, FileNotFoundException, ParameterException {
+    public BrushSettings heightBrush(Player player, LocalSession session, @Optional("5") Expression radius, @Optional() final String image, @Optional("0") @Step(90) @Range(min=0, max=360) final int rotation, @Optional("1") final double yscale, @Switch('r') boolean randomRotate, @Switch('l') boolean layers, @Switch('s') boolean dontSmooth, CommandContext context) throws WorldEditException, FileNotFoundException, ParameterException {
         return terrainBrush(player, session, radius, image, rotation, yscale, false, randomRotate, layers, !dontSmooth, ScalableHeightMap.Shape.CONE, context);
     }
 
@@ -722,7 +722,7 @@ public class BrushCommands extends BrushProcessor {
             max = 4
     )
     @CommandPermissions("worldedit.brush.height")
-    public BrushSettings cliffBrush(Player player, LocalSession session, @Optional("5") Expression radius, @Optional("") final String image, @Optional("0") @Step(90) @Range(min=0, max=360) final int rotation, @Optional("1") final double yscale, @Switch('r') boolean randomRotate, @Switch('l') boolean layers, @Switch('s') boolean dontSmooth, CommandContext context) throws WorldEditException, FileNotFoundException, ParameterException {
+    public BrushSettings cliffBrush(Player player, LocalSession session, @Optional("5") Expression radius, @Optional() final String image, @Optional("0") @Step(90) @Range(min=0, max=360) final int rotation, @Optional("1") final double yscale, @Switch('r') boolean randomRotate, @Switch('l') boolean layers, @Switch('s') boolean dontSmooth, CommandContext context) throws WorldEditException, FileNotFoundException, ParameterException {
         return terrainBrush(player, session, radius, image, rotation, yscale, true, randomRotate, layers, !dontSmooth, ScalableHeightMap.Shape.CYLINDER, context);
     }
 
@@ -739,7 +739,7 @@ public class BrushCommands extends BrushProcessor {
             max = 4
     )
     @CommandPermissions("worldedit.brush.height")
-    public BrushSettings flattenBrush(Player player, LocalSession session, @Optional("5") Expression radius, @Optional("") final String image, @Optional("0") @Step(90) @Range(min=0, max=360) final int rotation, @Optional("1") final double yscale, @Switch('r') boolean randomRotate, @Switch('l') boolean layers, @Switch('s') boolean dontSmooth, CommandContext context) throws WorldEditException, FileNotFoundException, ParameterException {
+    public BrushSettings flattenBrush(Player player, LocalSession session, @Optional("5") Expression radius, @Optional() final String image, @Optional("0") @Step(90) @Range(min=0, max=360) final int rotation, @Optional("1") final double yscale, @Switch('r') boolean randomRotate, @Switch('l') boolean layers, @Switch('s') boolean dontSmooth, CommandContext context) throws WorldEditException, FileNotFoundException, ParameterException {
         return terrainBrush(player, session, radius, image, rotation, yscale, true, randomRotate, layers, !dontSmooth, ScalableHeightMap.Shape.CONE, context);
     }
 
