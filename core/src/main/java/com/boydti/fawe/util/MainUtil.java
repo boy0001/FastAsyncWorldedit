@@ -1051,9 +1051,9 @@ public class MainUtil {
     public static void deleteOlder(File directory, final long timeDiff, boolean printDebug) {
         final long now = System.currentTimeMillis();
         ForkJoinPool pool = new ForkJoinPool();
-        iterateFiles(directory, new RunnableVal<File>() {
+        iterateFiles(directory, new Consumer<File>() {
             @Override
-            public void run(File file) {
+            public void accept(File file) {
                 long age = now - file.lastModified();
                 if (age > timeDiff) {
                     pool.submit(() -> file.delete());
