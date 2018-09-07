@@ -29,6 +29,8 @@ import com.sk89q.worldedit.regions.selector.CylinderRegionSelector;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.registry.WorldData;
+
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -158,60 +160,84 @@ public abstract class FawePlayer<T> extends Metadatable {
         return cancelled;
     }
 
-    public void checkConfirmation(String command, int times, int limit) throws RegionOperationException {
-        if (command == null || getMeta("cmdConfirmRunning", false)) {
-            return;
-        }
-        if (times > limit) {
-            setMeta("cmdConfirm", command);
-            String volume = "<unspecified>";
-            throw new RegionOperationException(BBC.WORLDEDIT_CANCEL_REASON_CONFIRM.f(0, times, command, volume));
-        }
+    private void setConfirmTask(@Nullable WorldEditRunnable task, String command) {
+        setMeta("cmdConfirm", task == null ? (WorldEditRunnable) () ->
+        CommandManager.getInstance().handleCommandOnCurrentThread(new CommandEvent(getPlayer(), command))
+        : task);
     }
 
-    public void checkConfirmationRadius(String command, int radius) throws RegionOperationException {
-        if (command == null || getMeta("cmdConfirmRunning", false)) {
-            return;
-        }
-        if (radius > 0) {
-            if (radius > 448) {
-                setMeta("cmdConfirm", command);
-                long volume = (long) (Math.PI * ((double) radius * radius));
-                throw new RegionOperationException(BBC.WORLDEDIT_CANCEL_REASON_CONFIRM.f(0, radius, command, NumberFormat.getNumberInstance().format(volume)));
+    public void checkConfirmation(@Nullable WorldEditRunnable task, String command, int times, int limit) throws WorldEditException {
+        if (command != null && !getMeta("cmdConfirmRunning", false)) {
+            if (times > limit) {
+                setConfirmTask(task, command);
+                String volume = "<unspecified>";
+                throw new RegionOperationException(BBC.WORLDEDIT_CANCEL_REASON_CONFIRM.f(0, times, command, volume));
             }
         }
+        if (task != null) task.run();
     }
 
-    public void checkConfirmationStack(String command, Region region, int times) throws RegionOperationException {
-        if (command == null || getMeta("cmdConfirmRunning", false)) {
-            return;
-        }
-        if (region != null) {
-            Vector min = region.getMinimumPoint().toBlockVector();
-            Vector max = region.getMaximumPoint().toBlockVector();
-            long area = (long) ((max.getX() - min.getX()) * (max.getZ() - min.getZ() + 1)) * times;
-            if (area > 2 << 18) {
-                setMeta("cmdConfirm", command);
-                long volume = (long) max.subtract(min).add(Vector.ONE).volume() * times;
-                throw new RegionOperationException(BBC.WORLDEDIT_CANCEL_REASON_CONFIRM.f(min, max, command, NumberFormat.getNumberInstance().format(volume)));
+    public void checkConfirmationRadius(@Nullable WorldEditRunnable task, String command, int radius) throws WorldEditException {
+        if (command != null && !getMeta("cmdConfirmRunning", false)) {
+            if (radius > 0) {
+                if (radius > 448) {
+                    setConfirmTask(task, command);
+                    long volume = (long) (Math.PI * ((double) radius * radius));
+                    throw new RegionOperationException(BBC.WORLDEDIT_CANCEL_REASON_CONFIRM.f(0, radius, command, NumberFormat.getNumberInstance().format(volume)));
+                }
             }
         }
+        if (task != null) task.run();
     }
 
-    public void checkConfirmationRegion(String command, Region region) throws RegionOperationException {
-        if (command == null || getMeta("cmdConfirmRunning", false)) {
-            return;
-        }
-        if (region != null) {
-            Vector min = region.getMinimumPoint().toBlockVector();
-            Vector max = region.getMaximumPoint().toBlockVector();
-            long area = (long) ((max.getX() - min.getX()) * (max.getZ() - min.getZ() + 1));
-            if (area > 2 << 18) {
-                setMeta("cmdConfirm", command);
-                long volume = (long) max.subtract(min).add(Vector.ONE).volume();
-                throw new RegionOperationException(BBC.WORLDEDIT_CANCEL_REASON_CONFIRM.f(min, max, command, NumberFormat.getNumberInstance().format(volume)));
+    public void checkConfirmationStack(@Nullable WorldEditRunnable task, String command, Region region, int times) throws WorldEditException {
+        if (command != null && !getMeta("cmdConfirmRunning", false)) {
+            if (region != null) {
+                Vector min = region.getMinimumPoint().toBlockVector();
+                Vector max = region.getMaximumPoint().toBlockVector();
+                long area = (long) ((max.getX() - min.getX()) * (max.getZ() - min.getZ() + 1)) * times;
+                if (area > 2 << 18) {
+                    setConfirmTask(task, command);
+                    long volume = (long) max.subtract(min).add(Vector.ONE).volume() * times;
+                    throw new RegionOperationException(BBC.WORLDEDIT_CANCEL_REASON_CONFIRM.f(min, max, command, NumberFormat.getNumberInstance().format(volume)));
+                }
             }
         }
+        if (task != null) task.run();
+    }
+
+    public void checkConfirmationRegion(@Nullable WorldEditRunnable task, String command, Region region) throws WorldEditException {
+        if (command != null && !getMeta("cmdConfirmRunning", false)) {
+            if (region != null) {
+                Vector min = region.getMinimumPoint().toBlockVector();
+                Vector max = region.getMaximumPoint().toBlockVector();
+                long area = (long) ((max.getX() - min.getX()) * (max.getZ() - min.getZ() + 1));
+                if (area > 2 << 18) {
+                    setConfirmTask(task, command);
+                    long volume = (long) max.subtract(min).add(Vector.ONE).volume();
+                    throw new RegionOperationException(BBC.WORLDEDIT_CANCEL_REASON_CONFIRM.f(min, max, command, NumberFormat.getNumberInstance().format(volume)));
+                }
+            }
+        }
+        if (task != null) task.run();
+    }
+
+    public synchronized boolean confirm() {
+        WorldEditRunnable confirm = deleteMeta("cmdConfirm");
+        if (!(confirm instanceof Runnable)) {
+            return false;
+        }
+        queueAction(() -> {
+            setMeta("cmdConfirmRunning", true);
+            try {
+                confirm.run();
+            } catch (WorldEditException e) {
+                throw new RuntimeException(e);
+            } finally {
+                setMeta("cmdConfirmRunning", false);
+            }
+        });
+        return true;
     }
 
     public void checkAllowedRegion(Region wrappedSelection) {
@@ -222,20 +248,6 @@ public abstract class FawePlayer<T> extends Metadatable {
         } else if (!WEManager.IMP.regionContains(wrappedSelection, allowedSet)) {
             throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_OUTSIDE_REGION);
         }
-    }
-
-    public boolean confirm() {
-        String confirm = deleteMeta("cmdConfirm");
-        if (confirm == null) {
-            return false;
-        }
-        queueAction(() -> {
-            setMeta("cmdConfirmRunning", true);
-            CommandEvent event = new CommandEvent(getPlayer(), confirm);
-            CommandManager.getInstance().handleCommandOnCurrentThread(event);
-            setMeta("cmdConfirmRunning", false);
-        });
-        return true;
     }
 
     public boolean toggle(String perm) {
