@@ -326,7 +326,7 @@ public class Settings extends Config {
         @Comment({
                 "[SAFE] Dynamically increase the number of chunks rendered",
                 " - Requires Paper: ci.destroystokyo.com/job/PaperSpigot/",
-                " - Set your server view distance to 1 (spigot.yml, server.properties)",
+                " - Set your server view distance to 3 (spigot.yml, server.properties)",
                 " - Based on tps and player movement",
                 " - Please provide feedback",
         })
