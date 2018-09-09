@@ -270,6 +270,11 @@ public class StringMan {
         return true;
     }
 
+    @Deprecated
+    public static boolean isAlphanumericUnd(final String str) {
+        return isAlphanumericUnd((CharSequence) str);
+    }
+
     public static boolean isAlphanumericUnd(final CharSequence str) {
         for (int i = 0; i < str.length(); i++) {
             final char c = str.charAt(i);
