@@ -46,8 +46,8 @@ public class OreGen extends Resource {
         }
         double f = rand.nextDouble() * Math.PI;
 
-        int x8 = x + 8;
-        int z8 = z + 8;
+        int x8 = x;
+        int z8 = z;
         double so8 = maxSizeO8;
         double so16 = maxSizeO16;
         double sf = MathMan.sinInexact(f) * so8;
