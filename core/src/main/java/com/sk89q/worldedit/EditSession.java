@@ -32,6 +32,7 @@ import com.boydti.fawe.logging.rollback.RollbackOptimizedHistory;
 import com.boydti.fawe.object.*;
 import com.boydti.fawe.object.brush.visualization.VirtualWorld;
 import com.boydti.fawe.object.changeset.*;
+import com.boydti.fawe.object.clipboard.ReadOnlyClipboard;
 import com.boydti.fawe.object.clipboard.WorldCopyClipboard;
 import com.boydti.fawe.object.collection.LocalBlockVectorSet;
 import com.boydti.fawe.object.exception.FaweException;
@@ -361,6 +362,19 @@ public class EditSession extends AbstractDelegateExtent implements HasFaweQueue,
      */
     public EditSession(final EventBus eventBus, World world, final int maxBlocks, @Nullable final BlockBag blockBag, EditSessionEvent event) {
         this(world, null, null, null, null, null, true, null, null, null, blockBag, eventBus, event);
+    }
+
+    /**
+     * Lazily copy a region
+     *
+     * @param region
+     * @return
+     */
+    public BlockArrayClipboard lazyCopy(Region region) {
+        WorldCopyClipboard faweClipboard = new WorldCopyClipboard(this, region);
+        BlockArrayClipboard weClipboard = new BlockArrayClipboard(region, faweClipboard);
+        weClipboard.setOrigin(region.getMinimumPoint());
+        return weClipboard;
     }
 
     /**
