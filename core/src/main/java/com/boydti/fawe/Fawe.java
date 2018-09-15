@@ -201,11 +201,15 @@ public class Fawe {
      * @param s
      */
     public static void debug(Object s) {
-        Actor actor = Request.request().getActor();
-        if (actor != null && actor.isPlayer()) {
-            actor.print(BBC.color(BBC.PREFIX.original() + " " + s));
-            return;
+        if (INSTANCE != null) // Fix of issue 1123 - Didn't check the whole code, but WorldEdit should be loaded when an INSTANCE of FAWE is set. (Since this is a core class, I didn't use the Bukkit API)
+        {
+            Actor actor = Request.request().getActor();
+            if (actor != null && actor.isPlayer()) {
+                actor.print(BBC.color(BBC.PREFIX.original() + " " + s));
+                return;
+            }
         }
+
         debugPlain(BBC.PREFIX.original() + " " + s);
     }
 
