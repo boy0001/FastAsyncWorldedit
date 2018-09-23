@@ -5,6 +5,8 @@ import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.util.ReflectionUtils;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.Tag;
+import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.extent.inventory.BlockBag;
 import com.sk89q.worldedit.extent.inventory.BlockBagException;
 import com.sk89q.worldedit.extent.inventory.UnplaceableBlockException;
@@ -65,7 +67,19 @@ public class BlockBagChangeSet extends AbstractDelegateChangeSet {
     }
 
     @Override
-    public void add(int x, int y, int z, int combinedFrom, int combinedTo) {
+    public void add(Vector loc, BaseBlock from, BaseBlock to) {
+        int x = loc.getBlockX();
+        int y = loc.getBlockY();
+        int z = loc.getBlockZ();
+        add(x, y, z, from, to);
+    }
+
+    @Override
+    public void add(int x, int y, int z, BaseBlock from, BaseBlock to) {
+        check(from.getCombined(), to.getCombined());
+    }
+
+    public void check(int combinedFrom, int combinedTo) {
         if (combinedTo != 0) {
             try {
                 blockBag.fetchPlacedBlock(FaweCache.getId(combinedTo), FaweCache.getData(combinedTo));
@@ -84,6 +98,11 @@ public class BlockBagChangeSet extends AbstractDelegateChangeSet {
                 }
             }
         }
+    }
+
+    @Override
+    public void add(int x, int y, int z, int combinedFrom, int combinedTo) {
+        check(combinedFrom, combinedTo);
         super.add(x, y, z, combinedFrom, combinedTo);
     }
 
