@@ -569,6 +569,15 @@ public class FaweBukkit implements IFawe, Listener {
             }
         }
 
+        if (Settings.IMP.EXPERIMENTAL.FREEBUILD) {
+            try {
+                managers.add(new FreeBuildRegion());
+                Fawe.debug("Plugin '<internal.freebuild>' found. Using it now.");
+            } catch (final Throwable e) {
+                MainUtil.handleError(e);
+            }
+        }
+
         return managers;
     }
 //

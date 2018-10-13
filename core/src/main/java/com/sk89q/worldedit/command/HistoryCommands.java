@@ -233,8 +233,9 @@ public class HistoryCommands extends MethodCommands {
     public void undo(Player player, LocalSession session, CommandContext context) throws WorldEditException {
         int times = Math.max(1, context.getInteger(0, 1));
         FawePlayer.wrap(player).checkConfirmation(() -> {
-            for (int i = 0; i < times; ++i) {
-                EditSession undone;
+            EditSession undone = null;
+            int i = 0;
+            for (; i < times; ++i) {
                 if (context.argsLength() < 2) {
                     undone = session.undo(session.getBlockBag(player), player);
                 } else {
@@ -245,14 +246,16 @@ public class HistoryCommands extends MethodCommands {
                         break;
                     }
                     undone = sess.undo(session.getBlockBag(player), player);
+                    if (undone == null) break;
                 }
-                if (undone != null) {
-                    BBC.COMMAND_UNDO_SUCCESS.send(player);
-                    worldEdit.flushBlockBag(player, undone);
-                } else {
-                    BBC.COMMAND_UNDO_ERROR.send(player);
-                    break;
-                }
+            }
+            if (undone == null) i--;
+            if (i > 0) {
+                BBC.COMMAND_UNDO_SUCCESS.send(player, i == 1 ? "" : " x" + i);
+                worldEdit.flushBlockBag(player, undone);
+            }
+            if (undone == null) {
+                BBC.COMMAND_UNDO_ERROR.send(player);
             }
         }, getArguments(context), times, 50, context);
     }
@@ -269,8 +272,9 @@ public class HistoryCommands extends MethodCommands {
 
         int times = Math.max(1, args.getInteger(0, 1));
 
-        for (int i = 0; i < times; ++i) {
-            EditSession redone;
+        EditSession redone = null;
+        int i = 0;
+        for (; i < times; ++i) {
             if (args.argsLength() < 2) {
                 redone = session.redo(session.getBlockBag(player), player);
             } else {
@@ -281,13 +285,16 @@ public class HistoryCommands extends MethodCommands {
                     break;
                 }
                 redone = sess.redo(session.getBlockBag(player), player);
+                if (redone == null) break;
             }
-            if (redone != null) {
-                BBC.COMMAND_REDO_SUCCESS.send(player);
-                worldEdit.flushBlockBag(player, redone);
-            } else {
-                BBC.COMMAND_REDO_ERROR.send(player);
-            }
+        }
+        if (redone == null) i--;
+        if (i > 0) {
+            BBC.COMMAND_REDO_SUCCESS.send(player, i == 1 ? "" : " x" + i);
+            worldEdit.flushBlockBag(player, redone);
+        }
+        if (redone == null) {
+            BBC.COMMAND_REDO_ERROR.send(player);
         }
     }
 

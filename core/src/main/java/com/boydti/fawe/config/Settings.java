@@ -357,6 +357,13 @@ public class Settings extends Config {
                 " - "
         })
         public boolean MODERN_CRAFTSCRIPTS = false;
+
+        @Comment({
+                "[SAFE] Experimental freebuild region restrictions",
+                " - PERM: fawe.freebuild",
+                " - PERM: fawe.freebuild.<plugin>"
+        })
+        public boolean FREEBUILD = false;
     }
 
     public static class WEB {

@@ -21,9 +21,9 @@ import org.bukkit.plugin.Plugin;
 
 public class AsyncBlock implements Block {
 
-    public final int z;
-    public final int y;
-    public final int x;
+    public int z;
+    public int y;
+    public int x;
     public final FaweQueue queue;
     public final AsyncWorld world;
 
@@ -283,5 +283,11 @@ public class AsyncBlock implements Block {
     @Override
     public void removeMetadata(String metadataKey, Plugin owningPlugin) {
 
+    }
+
+    public void setPosition(int x, int y, int z) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
     }
 }
