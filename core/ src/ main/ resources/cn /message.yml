@@ -3,7 +3,7 @@
 #来源第#1217号编译文件
 # 2018年10月13日 19:59:11进行过第6次更新
 info:
-  prefix: '&4&lFAWE:&f&7'
+  prefix: '&8(&4&lFAWE&8)&r&7'
   file_deleted: '%s0 已被删除.'
   schematic_pasting: '&7原理图粘贴。 这不能被撤消.'
   lighting_propogate_selection: '&7照明已经传播 %s0 个区块.(注意：去除光线使用//removelight)'
