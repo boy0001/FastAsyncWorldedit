@@ -1,11 +1,11 @@
-# BY：Green_Chennai
-# MCBBS ID：ww2498010071
+#BY：Green_Chennai
+#MCBBS ID：ww2498010071
 #来源第#1217号编译文件
-# 2018年10月13日 19:59:11进行过第6次更新
+#2018年10月14日 08:44:53进行过第7次更新
 info:
   prefix: '&8(&4&lFAWE&8)&r&7'
   file_deleted: '%s0 已被删除.'
-  schematic_pasting: '&7原理图粘贴。 这不能被撤消.'
+  schematic_pasting: '&7原理图粘贴. 这不能被撤消.'
   lighting_propogate_selection: '&7照明已经传播 %s0 个区块.(注意：去除光线使用//removelight)'
   updated_lighting_selection: '&7照明已更新 %s0 个区块. (它可能会为数据包发送一秒钟)'
   set_region: '&7选择设置为您当前允许的区域'
@@ -13,9 +13,9 @@ info:
   worldedit_delayed: '&7我们处理您的FAWE操作请稍候...'
   worldedit_run: '&7:为延误道歉 现在执行 %s'
   worldedit_complete: '&7编辑完成.'
-  require_selection_in_mask: '&7%s 你的选择不在你的圈内。 您只能在允许的地区进行修改.'
+  require_selection_in_mask: '&7%s 你的选择不在你的圈内. 您只能在允许的地区进行修改.'
   worldedit_volume: '&7你不能选择%current%的块.最大你可以修改是 %max%.'
-  worldedit_iterations: '&7您不能迭代%current%次。 允许的最大的次数是 %max%.'
+  worldedit_iterations: '&7您不能重复%current%次. 允许的最大的次数是 %max%.'
   worldedit_unsafe: '&7访问该命令已被阻止'
   worldedit_dangerous_worldedit: '&c已处理不安全编辑 %s0 一共 %s1'
   worldedit_toggle_tips_on: '&7已禁用FAWE提示.'
@@ -32,7 +32,7 @@ info:
   compressed: 修改历史压缩保存 %s0b (%s1x小)
   action_complete: '保存完成,耗时 %s0 秒 '
 error:
-  worldedit_extend: '&c您的编辑可能已经扩展到您的允许区域以外.'
+  worldedit_extend: '&c你的WorldEdit编辑超出了允许的范围.'
   web_unauthorized: :只允许从配置的Web主机的链接 %s0
   command_syntax: '&c用法: &7%s0'
   no_perm: '&c您缺少权限: %s0'
@@ -56,7 +56,7 @@ error:
   worldedit_some_fails: '&c%s0 无法放置方块,因为你没有该区域的权限'
   worldedit_some_fails_blockbag: '&c缺少方块: %s0'
 web:
-  generating_link: '上传中%s请稍候..., '
+  generating_link: '上传中%s请稍候...'
   generating_link_failed: '&c无法生成下载链接!'
   download_link: '%s'
 worldedit:
@@ -83,9 +83,13 @@ worldedit:
   flip:
     command_flipped: 拷贝方块已被翻转
   regen:
-    command_regen_0: 区域再生
-    command_regen_1: 区域再生
-    command_regen_2: 区域再生
+    command_regen_0: |-
+      区域再生.
+      生物群落 /regen [biome]
+    command_regen_1: |-
+      区域再生.
+      使用种子 /regen [biome] [seed]
+    command_regen_2: 区域再生.
   tree:
     command_tree: '%s0 创建树.'
     command_pumpkin: '%s0 创建南瓜.'
@@ -99,7 +103,7 @@ worldedit:
     command_undo_error: 无撤销. (查看使用/inspect` 和 `/frb`)
     command_undo_success: 撤消成功.
   operation:
-    operation: 开始放置 (%s0)
+    operation: 放置方块 (%s0)
   selection:
     selection_wand: ' 左键单击:选择点 #1; 右键单击:选择点 #2'
     selection_wand_disable: 小木斧禁用
@@ -239,24 +243,24 @@ cancel:
   worldedit_cancel_reason_max_checks: '块检查太多'
   worldedit_cancel_reason_max_tiles: '封锁太多了'
   worldedit_cancel_reason_max_entities: '实体太多'
-  worldedit_cancel_reason_max_iterations: '最大迭代次数'
+  worldedit_cancel_reason_max_iterations: '最大重复次数'
   worldedit_cancel_reason_no_region: 使用 /wea来解除限制, 或设置`region-restrictions`选项为false在config.yml内
   worldedit_failed_load_chunk: '&4忽略方块的变化: &7%s0;%s1&c. 尝试增加方块的队列.'
   worldedit_cancel_reason_outside_level: '外界'
   worldedit_cancel_reason_outside_region: 使用 /wea来解除限制, 或设置`region-restrictions`选项为false在config.yml内
 navigation:
-  ascend_fail: 没有找到你上面的空位.
-  ascended_plural: 登高 %s0 水平.
-  ascended_singular: 升高一级.
-  unstuck: 你去了!
+  ascend_fail: 没有找到你上方的空位.
+  ascended_plural: 上升 %s0 格.
+  ascended_singular: 向上移动一格.
+  unstuck: 现在应该会更好
   descend_fail: 没有你找到的免费地点.
   descend_plural: 下降 %s0 水平.
   descend_singular: 降低了一个水平.
   whoosh: 嗖!
   poof: 噗!
-  thru_fail: 没有找到你的空位.
-  no_block: 没有障碍! (还是太远)
-  up_fail: 你会碰到你以上的东西.
+  thru_fail: 没有找到可以放下你的空位.
+  no_block: 没有方块目标或者是太远了
+  up_fail: 你会碰到方块.
 selection:
   sel_cuboid: Cuboid:左键点 1, 右键点 2
   sel_cuboid_extend: Cuboid:左键单击起始点,右键单击扩展
