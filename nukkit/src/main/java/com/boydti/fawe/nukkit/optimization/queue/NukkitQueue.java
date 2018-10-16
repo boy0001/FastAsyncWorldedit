@@ -302,7 +302,7 @@ public class NukkitQueue extends NMSMappedFaweQueue<Level, BaseFullChunk, BaseFu
 
     @Override
     public BaseFullChunk getCachedChunk(Level level, int cx, int cz) {
-        return level.getProvider().getChunk(cx, cz);
+        return level.getProvider().getLoadedChunk(cx, cz);
     }
 
     @Override
