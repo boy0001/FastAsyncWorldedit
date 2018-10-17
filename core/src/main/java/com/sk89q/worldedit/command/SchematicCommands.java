@@ -613,6 +613,11 @@ public class SchematicCommands extends MethodCommands {
                         color = "&a";
                         if (name.indexOf('.') != -1) name = name.substring(0, name.lastIndexOf('.'));
                     }
+                    try {
+                        if (!MainUtil.isInSubDirectory(dir, file)) {
+                            throw new RuntimeException(new CommandException("Invalid path"));
+                        }
+                    } catch (IOException ignore) {}
                 } else if (uriStr.startsWith("http://") || uriStr.startsWith("https://")) {
                     // url
                     color = "&9";
