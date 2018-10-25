@@ -13,6 +13,7 @@ import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.wrappers.WorldWrapper;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.forge.ForgeWorld;
+import com.sk89q.worldedit.internal.LocalWorldAdapter;
 import com.sk89q.worldedit.world.World;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.ModMetadata;
@@ -148,6 +149,8 @@ public class FaweForge implements IFawe {
                 e.printStackTrace();
                 return world.getName();
             }
+        }else if (world instanceof LocalWorldAdapter){
+            return world.getName();
         }
         return getWorldName(((ForgeWorld) world).getWorld());
     }
