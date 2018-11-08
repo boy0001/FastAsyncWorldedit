@@ -745,7 +745,7 @@ public class BrushCommands extends BrushProcessor {
 
     private BrushSettings terrainBrush(Player player, LocalSession session, Expression radius, String image, int rotation, double yscale, boolean flat, boolean randomRotate, boolean layers, boolean smooth, ScalableHeightMap.Shape shape, CommandContext context) throws WorldEditException, FileNotFoundException, ParameterException {
         checkMaxBrushRadius(radius);
-        InputStream stream = image == null ? null : getHeightmapStream(image);
+        InputStream stream = (image == null || image.equalsIgnoreCase("null") || image.equalsIgnoreCase("#clipboard")) ? null : getHeightmapStream(image);
         HeightBrush brush;
         if (flat) {
             try {
