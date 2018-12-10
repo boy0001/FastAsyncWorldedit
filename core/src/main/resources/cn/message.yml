@@ -203,7 +203,7 @@ worldedit:
       &8 - &a左击&7将结构复制到您的剪贴板
       &8 - &a右击&7将结构添加到多重剪贴板
       &8 - &7使用 &a%s2&7 回到原世界
-    schematic_format: 可用格式 (名称: 搜索名称)
+    schematic_format: '可用格式 (名称: 搜索名称)'
     schematic_loaded: '已加载 %s0。请使用 //paste 粘贴'
     schematic_saved: '已保存 %s0。'
     schematic_page: 页数必须为 %s
@@ -280,10 +280,10 @@ navigation:
 selection:
   sel_cuboid: '立方体: 左击点 1, 右击点 2'
   sel_cuboid_extend: '立方体: 左击起始点, 右击扩大'
-  sel_2d_polygon: 2D 多边形选择器: 左/右点击添加点。
+  sel_2d_polygon: '2D 多边形选择器: 左/右点击添加点。'
   sel_ellipsiod: '椭圆体选择器: 左击选定中心，右击扩大'
   sel_sphere: '球体选择器: 左击选定中心，右击设置半径'
-  sel_cylindrical: '圆柱选择器: 左击选定中心，右击扩大'.
+  sel_cylindrical: '圆柱选择器: 左击选定中心，右击扩大'
   sel_max: '可选择至多 %s0 个点。'
   sel_fuzzy: '模糊选择器: 左击选择所有可能的方块，右击添加。要选择气腔，请使用 //pos1。'
   sel_convex_polyhedral: '凸多面体选择器: 左击选择首个顶点，右击选择更多顶点。'
