@@ -107,7 +107,6 @@ subprojects {
         maven {url "http://ci.frostcast.net/plugin/repository/everything"}
         maven {url "http://maven.sk89q.com/artifactory/repo"}
         maven {url "http://repo.spongepowered.org/maven"}
-        maven {url "https://repo.inventivetalent.org/content/groups/public/"}
         maven {url "http://dl.bintray.com/tastybento/maven-repo"}
     }
 }

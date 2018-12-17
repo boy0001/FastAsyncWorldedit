@@ -31,7 +31,7 @@ dependencies {
     compile 'org.bukkit.craftbukkit:CraftBukkit:1.8.8'
     compile 'com.comphenix.protocol:ProtocolLib-API:4.4.0-SNAPSHOT'
     compile 'com.wasteofplastic:askyblock:3.0.8.2'
-    compile('org.inventivetalent:mapmanager:1.4.0-SNAPSHOT') {
+    compile('org.inventivetalent:mapmanager:1.7.1-SNAPSHOT') {
         transitive = false
     }
 }
