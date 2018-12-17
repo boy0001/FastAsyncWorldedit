@@ -1,6 +1,5 @@
 repositories {
     flatDir {dirs 'lib'}
-    mavenLocal()
 }
 dependencies {
     compile project(':core')
