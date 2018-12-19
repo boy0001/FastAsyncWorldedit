@@ -643,7 +643,7 @@ public class Fawe {
             debug(" - AsyncWorldEdit/WorldEditRegions isn't installed");
             debug(" - Any other errors in the startup log");
             debug("Contact Empire92 if you need assistance:");
-            debug(" - Send me a PM or ask on IRC/Discord");
+            debug(" - Send me a PM or ask on Discord");
             debug(" - https://discord.gg/ngZCzbU");
             debug("=======================================");
         }

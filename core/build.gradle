@@ -1,5 +1,6 @@
 repositories {
     flatDir {dirs 'lib'}
+    maven {url "http://ci.athion.net/job/PlotSquared/ws/mvn/"}
 }
 dependencies {
     testCompile 'junit:junit:4.12'
