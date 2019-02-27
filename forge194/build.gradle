@@ -34,13 +34,13 @@ repositories {
         name = "Sponge"
         url = "https://repo.spongepowered.org/maven"
     }
-    maven {
-        name = "Sponge Metrics"
-        url = "http://repo.mcstats.org/content/repositories/releases/"
-    }
+//    maven {
+//        name = "Sponge Metrics"
+//        url = "http://repo.mcstats.org/content/repositories/releases/"
+//    }
 }
 minecraft {
-    version = "1965"
+    version = "1.9.4-12.17.0.2051"
     mappings = "stable_26"
     runDir = 'run'
 }

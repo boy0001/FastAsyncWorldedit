@@ -35,10 +35,10 @@ repositories {
         name = "Sponge"
         url = "https://repo.spongepowered.org/maven"
     }
-    maven {
-        name = "Sponge Metrics"
-        url = "http://repo.mcstats.org/content/repositories/releases/"
-    }
+//    maven {
+//        name = "Sponge Metrics"
+//        url = "http://repo.mcstats.org/content/repositories/releases/"
+//    }
 }
 minecraft {
     version = "1.11-13.19.0.2157"
