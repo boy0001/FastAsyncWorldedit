@@ -4,6 +4,8 @@
 
 ---
 
+# Report bugs and issues regarding 1.13 [here](https://github.com/IntellectualSites/FastAsyncWorldEdit-1.13/issues/new) after ensuring there isn't already an issue like that. <br> Do NOT do that in this repository!
+
 FAWE is a fork of WorldEdit that has huge speed and memory improvements and considerably more features
 
 It is available for Bukkit, Forge, Sponge and Nukkit.

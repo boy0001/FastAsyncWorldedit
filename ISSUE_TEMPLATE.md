@@ -1,4 +1,5 @@
-# Bug report for FastAsyncWorldEdit <1.12.2
+# Bug report for FastAsyncWorldEdit < 1.12.2
+<!--- REPORT ISSUES REGARDING FAWE ON 1.13.x HERE: https://github.com/IntellectualSites/FastAsyncWorldEdit-1.13/issues/new --->
 <!--- Follow this template if reporting an issue. -->
 <!--- Remove this template if making a suggestion or asking a question. -->
 <!--- Please comment or react to an existing ticket if it exists -->
@@ -13,7 +14,8 @@
 
 **Checklist**:
 <!--- Make sure you've completed the following steps (put an "X" between of brackets): -->
+- [] I made sure that I'm using FAWE on 1.12.2 or lower
 - [] I included a `/fawe debugpaste` link
 - [] I made sure there aren't duplicates of this report [(Use Search)](https://github.com/boy0001/FastAsyncWorldedit/issues?utf8=%E2%9C%93&q=is%3Aissue)
-- [] I made sure I am using an up-to-date version of [FAWE <1.12.2](https://ci.athion.net/job/FastAsyncWorldEdit/)
+- [] I made sure I am using an up-to-date version of [FAWE < 1.12.2](https://ci.athion.net/job/FastAsyncWorldEdit/)
 - [] I made sure the bug/error is not caused by any other plugin
