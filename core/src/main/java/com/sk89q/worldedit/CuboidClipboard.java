@@ -316,7 +316,6 @@ public class CuboidClipboard {
             case 56:
             case 57:
             case 58:
-            case 60:
             case 7:
             case 73:
             case 74:
