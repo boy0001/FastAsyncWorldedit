@@ -433,6 +433,7 @@ public class Fawe {
         MainUtil.copyFile(MainUtil.getJarFile(), "nl/message.yml", null);
         MainUtil.copyFile(MainUtil.getJarFile(), "fr/message.yml", null);
         MainUtil.copyFile(MainUtil.getJarFile(), "cn/message.yml", null);
+        MainUtil.copyFile(MainUtil.getJarFile(), "it/message.yml", null);
         // Setting up config.yml
         File file = new File(this.IMP.getDirectory(), "config.yml");
         Settings.IMP.PLATFORM = IMP.getPlatform().replace("\"", "");
@@ -642,7 +643,7 @@ public class Fawe {
             debug(" - AsyncWorldEdit/WorldEditRegions isn't installed");
             debug(" - Any other errors in the startup log");
             debug("Contact Empire92 if you need assistance:");
-            debug(" - Send me a PM or ask on IRC/Discord");
+            debug(" - Send me a PM or ask on Discord");
             debug(" - https://discord.gg/ngZCzbU");
             debug("=======================================");
         }

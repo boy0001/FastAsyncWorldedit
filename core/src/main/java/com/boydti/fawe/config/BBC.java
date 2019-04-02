@@ -146,7 +146,6 @@ public enum BBC {
     BRUSH_TRANSFORM("Brush transform set", "WorldEdit.Brush"),
     BRUSH_MATERIAL("Brush material set", "WorldEdit.Brush"),
 
-
     ROLLBACK_ELEMENT("Undoing %s0", "WorldEdit.Rollback"),
 
     TOOL_INSPECT("Inspect tool bound to %s0.", "WorldEdit.Tool"),

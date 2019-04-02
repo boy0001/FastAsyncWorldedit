@@ -36,10 +36,10 @@ repositories {
         name = "Sponge"
         url = "https://repo.spongepowered.org/maven"
     }
-    maven {
-        name = "Sponge Metrics"
-        url = "http://repo.mcstats.org/content/repositories/releases/"
-    }
+//    maven {
+//        name = "Sponge Metrics"
+//        url = "http://repo.mcstats.org/content/repositories/releases/"
+//    }
 }
 
 dependencies {
