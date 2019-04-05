@@ -48,6 +48,41 @@ processResources {
     }
 }
 
+jar.archiveName="fawe-bukkit-${project.parent.version}.jar"
+jar.destinationDir = file '../mvn/com/boydti/fawe-bukkit/' + project.parent.version
+task createPom << {
+    pom {
+        project {
+            groupId 'com.boydti'
+            artifactId 'fawe-bukkit'
+            version project.parent.version
+        }
+    }
+    .getEffectivePom()
+            .setDependencies(new ArrayList<>())
+            .writeTo("../mvn/com/boydti/fawe-bukkit/${project.parent.version}/fawe-bukkit-${project.parent.version}.pom")
+    pom {
+        project {
+            groupId 'com.boydti'
+            artifactId 'fawe-bukkit'
+            version 'latest'
+        }
+    }
+    .getEffectivePom()
+            .setDependencies(new ArrayList<>())
+            .writeTo("../mvn/com/boydti/fawe-bukkit/latest/fawe-bukkit-latest.pom")
+}
+task copyFiles {
+    doLast {
+        copy {
+            from "../mvn/com/boydti/fawe-bukkit/${project.parent.version}/"
+            into '../mvn/com/boydti/fawe-bukkit/latest/'
+            include('*.jar')
+            rename ("fawe-bukkit-${project.parent.version}.jar", 'fawe-bukkit-latest.jar')
+        }
+    }
+}
+
 apply plugin: 'com.github.johnrengelman.shadow'
 // We only want the shadow jar produced
 shadowJar {
