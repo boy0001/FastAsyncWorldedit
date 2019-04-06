@@ -36,7 +36,7 @@ public class TrimFlatFilter extends MCAFilterCounter {
                         case 7: // bedrock
                             continue;
                         default:
-                            return;
+                            return null;
                     }
                 }
             }
@@ -44,7 +44,7 @@ public class TrimFlatFilter extends MCAFilterCounter {
         for (int y = 4; y < 16; y++) {
             for (int z = 0; z < 16; z++) {
                 for (int x = 0; x < 16; x++, index++) {
-                    if (layer0[index] != 0) return;
+                    if (layer0[index] != 0) return null;
                 }
             }
         }
