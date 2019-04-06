@@ -315,7 +315,7 @@ public class AnvilCommands {
             desc = "Trim all flat chunks"
     )
     @CommandPermissions("worldedit.anvil.trimallflat")
-    public void trimAllAir(Player player, String folder, @Switch('u') boolean unsafe) throws WorldEditException {
+    public void trimFlatFilter(Player player, String folder, @Switch('u') boolean unsafe) throws WorldEditException {
         TrimFlatFilter filter = new TrimFlatFilter();
         TrimFlatFilter result = runWithWorld(player, folder, filter, true, unsafe);
         if (result != null) player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(result.getTotal()));
