@@ -25,6 +25,7 @@ public class TrimFlatFilter extends MCAFilterCounter {
             }
         }
         byte[] layer0 = chunk.ids[0];
+        if (layer0 == null) return null;
         int index = 0;
         for (int y = 0; y <= 3; y++) {
             for (int z = 0; z < 16; z++) {
