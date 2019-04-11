@@ -89,7 +89,7 @@ public abstract class FawePlayer<T> extends Metadatable {
         }
         if (obj instanceof Player) {
             Player actor = LocationMaskedPlayerWrapper.unwrap((Player) obj);
-            if ((fieldBasePlayer != null && playerProxyClass.isAssignableFrom(obj.getClass())) || (fieldBasePlayer == null && obj.getClass().getName().endsWith("PlayerProxy"))) {
+            if ((fieldBasePlayer != null && playerProxyClass.isAssignableFrom(obj.getClass()))  ) {
                 try {
                     Player player = (Player) fieldBasePlayer.get(actor);
                     FawePlayer<Object> result = wrap(player);
