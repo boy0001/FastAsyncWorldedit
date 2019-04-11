@@ -53,6 +53,18 @@ public abstract class FawePlayer<T> extends Metadatable {
         public static final String ROLLBACK = "rollback";
     }
 
+    private static Class<?> playerProxyClass = null;
+    private static Field fieldBasePlayer = null;
+    static {
+        try {
+            playerProxyClass = Class.forName("com.sk89q.worldedit.extension.platform.PlayerProxy");
+            fieldBasePlayer = playerProxyClass.getDeclaredField("basePlayer");
+            fieldBasePlayer.setAccessible(true);
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+    }
+
     /**
      * Wrap some object into a FawePlayer<br>
      * - org.bukkit.entity.Player
@@ -77,17 +89,15 @@ public abstract class FawePlayer<T> extends Metadatable {
         }
         if (obj instanceof Player) {
             Player actor = LocationMaskedPlayerWrapper.unwrap((Player) obj);
-            if (obj.getClass().getName().endsWith("PlayerProxy")) {
+            if ((fieldBasePlayer != null && playerProxyClass.isAssignableFrom(obj.getClass())) || (fieldBasePlayer == null && obj.getClass().getName().endsWith("PlayerProxy"))) {
                 try {
-                    Field fieldBasePlayer = actor.getClass().getDeclaredField("basePlayer");
-                    fieldBasePlayer.setAccessible(true);
                     Player player = (Player) fieldBasePlayer.get(actor);
                     FawePlayer<Object> result = wrap(player);
                     return (FawePlayer<V>) (result == null ? wrap(player.getName()) : result);
                 } catch (Throwable e) {
                     MainUtil.handleError(e);
-                    return Fawe.imp().wrap(actor.getName());
                 }
+                return Fawe.imp().wrap(actor.getName());
             } else if (obj instanceof PlayerWrapper) {
                 return wrap(((PlayerWrapper) obj).getParent());
             } else {
