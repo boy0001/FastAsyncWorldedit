@@ -250,7 +250,7 @@ public class SchematicCommands extends MethodCommands {
                     }
                 }
                 if (f == null || !f.exists() || !MainUtil.isInSubDirectory(working, f)) {
-                    player.printError("Schematic " + filename + " does not exist! (" + f.exists() + "|" + f + "|" + (!MainUtil.isInSubDirectory(working, f)) + ")");
+                    player.printError("Schematic " + filename + " does not exist! (" + (f == null ? false : f.exists()) + "|" + f + "|" + (!MainUtil.isInSubDirectory(working, f)) + ")");
                     return;
                 }
                 if (format == null) {
