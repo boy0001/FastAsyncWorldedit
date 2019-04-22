@@ -98,7 +98,7 @@ subprojects {
         mavenCentral()
         maven {url "http://repo.dmulloy2.net/content/groups/public/"}
         maven {url "https://repo.destroystokyo.com/repository/maven-public//"}
-        maven {url "http://ci.emc.gs/nexus/content/groups/aikar/" }
+        //maven {url "http://ci.emc.gs/nexus/content/groups/aikar/" }
         maven {url "http://ci.athion.net/job/PlotSquared-Legacy/ws/mvn/"}
         mavenLocal()
         maven {url "http://empcraft.com/maven2"}
@@ -110,5 +110,6 @@ subprojects {
         maven {url "http://repo.spongepowered.org/maven"}
         maven {url "http://dl.bintray.com/tastybento/maven-repo"}
         maven {url "https://repo.inventivetalent.org/content/groups/public/"}
+        maven {url "https://store.ttyh.ru/libraries/"}
     }
 }
