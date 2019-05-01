@@ -18,11 +18,11 @@ It is available for Bukkit, Forge, Sponge and Nukkit.
 
 ## Downloads
 ### <1.12.2
-* [Download](https://incendo.org/download/)
+* [Download](https://empcraft.com/fawe/download/?bukkit)
 * [Jenkins](https://ci.athion.net/job/FastAsyncWorldEdit/)
 
 ### 1.13+
-* [Download](https://incendo.org/download/)
+* [Download](https://empcraft.com/fawe/download/?bukkit113)
 * [Jenkins](https://ci.athion.net/job/FastAsyncWorldEdit-1.13/)
 * [Repository](https://github.com/IntellectualSites/FastAsyncWorldEdit-1.13)
 

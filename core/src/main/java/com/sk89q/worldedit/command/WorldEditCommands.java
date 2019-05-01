@@ -182,7 +182,7 @@ public class WorldEditCommands {
     @Command(
             aliases = {"debugpaste"},
             usage = "",
-            desc = "Upload latest.log, config.yml and your message.yml to https://incendo.org",
+            desc = "Upload latest.log, config.yml and your message.yml to https://athion.net/ISPaster/paste",
             min = 0,
             max = 0
     )
