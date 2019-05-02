@@ -20,10 +20,12 @@ It is available for Bukkit, Forge, Sponge and Nukkit.
 ### <1.12.2
 * [Download](https://empcraft.com/fawe/download/?bukkit)
 * [Jenkins](https://ci.athion.net/job/FastAsyncWorldEdit/)
+* [JavaDoc](https://ci.athion.net/job/FastAsyncWorldEdit/javadoc/)
 
 ### 1.13+
 * [Download](https://empcraft.com/fawe/download/?bukkit113)
 * [Jenkins](https://ci.athion.net/job/FastAsyncWorldEdit-1.13/)
+* [JavaDoc](https://ci.athion.net/job/FastAsyncWorldEdit-1.13/javadoc/)
 * [Repository](https://github.com/IntellectualSites/FastAsyncWorldEdit-1.13)
 
 ## Developer Resources
