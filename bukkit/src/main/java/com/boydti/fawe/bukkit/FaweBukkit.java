@@ -653,7 +653,7 @@ public class FaweBukkit implements IFawe, Listener {
                     this.version = tmp = v;
                     if (tmp == Version.v1_12_R1) {
                         try {
-                            Fawe.debug("Running 1.12 registry dumper!");
+                            System.out.println("Running 1.12 registry dumper!");
                             NMSRegistryDumper dumper = new NMSRegistryDumper(MainUtil.getFile(plugin.getDataFolder(), "extrablocks.json"));
                             dumper.run();
                         } catch (Throwable e) {

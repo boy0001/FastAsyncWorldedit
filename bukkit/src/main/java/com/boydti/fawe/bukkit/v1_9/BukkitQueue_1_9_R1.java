@@ -124,8 +124,8 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<net.minecraft.server.v1_9_
             fieldBits.setAccessible(true);
             if (getAdapter() == null) {
                 setupAdapter(new FaweAdapter_1_9());
-                Fawe.debug("Using adapter: " + getAdapter());
-                Fawe.debug("=========================================");
+                System.out.println("Using adapter: " + getAdapter());
+                System.out.println("=========================================");
             }
         } catch (Throwable e) {
             e.printStackTrace();

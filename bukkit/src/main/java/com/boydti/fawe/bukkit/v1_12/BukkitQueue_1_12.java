@@ -126,8 +126,8 @@ public class BukkitQueue_1_12 extends BukkitQueue_0<net.minecraft.server.v1_12_R
             getEntitySlices = net.minecraft.server.v1_12_R1.Chunk.class.getDeclaredMethod("getEntitySlices");
             getEntitySlices.setAccessible(true);
             setupAdapter(new FaweAdapter_1_12());
-            Fawe.debug("Using adapter: " + getAdapter());
-            Fawe.debug("=========================================");
+            System.out.println("Using adapter: " + getAdapter());
+            System.out.println("=========================================");
             for (int i = 0; i < IBD_CACHE.length; i++) {
                 try {
                     IBD_CACHE[i] = Block.getById(i >> 4).fromLegacyData(i & 0xF);
