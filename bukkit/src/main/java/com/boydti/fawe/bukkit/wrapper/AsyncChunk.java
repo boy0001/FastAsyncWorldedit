@@ -74,7 +74,7 @@ public class AsyncChunk implements Chunk {
         return whenLoaded(new RunnableVal<ChunkSnapshot>() {
             @Override
             public void run(ChunkSnapshot value) {
-                this.value = world.getChunkAt(x, z).getChunkSnapshot(includeBiome, includeBiome, includeBiomeTempRain);
+                this.value = world.getBukkitWorld().getChunkAt(x, z).getChunkSnapshot(includeBiome, includeBiome, includeBiomeTempRain);
             }
         });
     }
@@ -112,7 +112,7 @@ public class AsyncChunk implements Chunk {
         return whenLoaded(new RunnableVal<Entity[]>() {
             @Override
             public void run(Entity[] value) {
-                world.getChunkAt(x, z).getEntities();
+                world.getBukkitWorld().getChunkAt(x, z).getEntities();
             }
         });
     }
@@ -125,7 +125,7 @@ public class AsyncChunk implements Chunk {
         return TaskManager.IMP.sync(new RunnableVal<BlockState[]>() {
             @Override
             public void run(BlockState[] value) {
-                this.value = world.getChunkAt(x, z).getTileEntities();
+                this.value = world.getBukkitWorld().getChunkAt(x, z).getTileEntities();
             }
         });
     }
