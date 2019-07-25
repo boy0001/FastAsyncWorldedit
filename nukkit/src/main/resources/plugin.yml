@@ -2,6 +2,7 @@ name: "${name}"
 version: "${version}"
 author: Empire92
 api: ["1.0.0"]
+depend: [DbLib]
 main: com.boydti.fawe.nukkit.core.NukkitWorldEdit
 permissions:
   fawe.plotsquared:
