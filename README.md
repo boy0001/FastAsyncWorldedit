@@ -36,7 +36,6 @@ It is available for Bukkit, Forge, Sponge and Nukkit.
 FAWE uses gradle to build
 
 ```
-$ gradlew setupDecompWorkspace
 $ gradlew build
 ```
 
