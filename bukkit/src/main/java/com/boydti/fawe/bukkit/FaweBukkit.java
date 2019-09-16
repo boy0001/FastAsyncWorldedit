@@ -7,7 +7,17 @@ import com.boydti.fawe.bukkit.listener.BrushListener;
 import com.boydti.fawe.bukkit.listener.BukkitImageListener;
 import com.boydti.fawe.bukkit.listener.CFIPacketListener;
 import com.boydti.fawe.bukkit.listener.RenderListener;
-import com.boydti.fawe.bukkit.regions.*;
+import com.boydti.fawe.bukkit.regions.ASkyBlockHook;
+import com.boydti.fawe.bukkit.regions.FactionsFeature;
+import com.boydti.fawe.bukkit.regions.FactionsOneFeature;
+import com.boydti.fawe.bukkit.regions.FactionsUUIDFeature;
+import com.boydti.fawe.bukkit.regions.FreeBuildRegion;
+import com.boydti.fawe.bukkit.regions.GriefPreventionFeature;
+import com.boydti.fawe.bukkit.regions.PlotMeFeature;
+import com.boydti.fawe.bukkit.regions.PreciousStonesFeature;
+import com.boydti.fawe.bukkit.regions.ResidenceFeature;
+import com.boydti.fawe.bukkit.regions.TownyFeature;
+import com.boydti.fawe.bukkit.regions.Worldguard;
 import com.boydti.fawe.bukkit.util.BukkitReflectionUtils;
 import com.boydti.fawe.bukkit.util.BukkitTaskMan;
 import com.boydti.fawe.bukkit.util.ItemUtil;
@@ -19,20 +29,18 @@ import com.boydti.fawe.bukkit.v0.BukkitQueue_0;
 import com.boydti.fawe.bukkit.v0.BukkitQueue_All;
 import com.boydti.fawe.bukkit.v0.ChunkListener_8;
 import com.boydti.fawe.bukkit.v0.ChunkListener_9;
-import com.boydti.fawe.bukkit.v1_10.BukkitQueue_1_10;
-import com.boydti.fawe.bukkit.v1_11.BukkitQueue_1_11;
 import com.boydti.fawe.bukkit.v1_12.BukkitQueue_1_12;
 import com.boydti.fawe.bukkit.v1_12.NMSRegistryDumper;
-import com.boydti.fawe.bukkit.v1_7.BukkitQueue17;
-import com.boydti.fawe.bukkit.v1_8.BukkitQueue18R3;
-import com.boydti.fawe.bukkit.v1_9.BukkitQueue_1_9_R1;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweCommand;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.regions.FaweMaskManager;
-import com.boydti.fawe.util.*;
+import com.boydti.fawe.util.Jars;
+import com.boydti.fawe.util.MainUtil;
+import com.boydti.fawe.util.ReflectionUtils;
+import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.util.cui.CUI;
 import com.boydti.fawe.util.image.ImageViewer;
 import com.boydti.fawe.util.metrics.BStats;
@@ -61,7 +69,6 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.RegisteredServiceProvider;
-import org.primesoft.blockshub.BlocksHubBukkit;
 
 public class FaweBukkit implements IFawe, Listener {
 
@@ -624,19 +631,6 @@ public class FaweBukkit implements IFawe, Listener {
     private boolean enabledBlocksHub = true;
 
     @Override
-    public Object getBlocksHubApi() {
-        if (!enabledBlocksHub) {
-            return null;
-        }
-        Plugin blocksHubPlugin = Bukkit.getPluginManager().getPlugin("BlocksHub");
-        if (blocksHubPlugin == null) {
-            enabledBlocksHub = false;
-            return null;
-        }
-        return ((BlocksHubBukkit) blocksHubPlugin).getApi();
-    }
-
-    @Override
     public boolean isMainThread() {
         return Bukkit.isPrimaryThread();
     }
@@ -681,16 +675,6 @@ public class FaweBukkit implements IFawe, Listener {
 
     private FaweQueue getQueue(World world) {
         switch (getVersion()) {
-            case v1_7_R4:
-                return new BukkitQueue17(world);
-            case v1_8_R3:
-                return new BukkitQueue18R3(world);
-            case v1_9_R2:
-                return new BukkitQueue_1_9_R1(world);
-            case v1_10_R1:
-                return new BukkitQueue_1_10(world);
-            case v1_11_R1:
-                return new BukkitQueue_1_11(world);
             case v1_12_R1:
                 return new BukkitQueue_1_12(world);
             default:
@@ -701,16 +685,6 @@ public class FaweBukkit implements IFawe, Listener {
 
     private FaweQueue getQueue(String world) {
         switch (getVersion()) {
-            case v1_7_R4:
-                return new BukkitQueue17(world);
-            case v1_8_R3:
-                return new BukkitQueue18R3(world);
-            case v1_9_R2:
-                return new BukkitQueue_1_9_R1(world);
-            case v1_10_R1:
-                return new BukkitQueue_1_10(world);
-            case v1_11_R1:
-                return new BukkitQueue_1_11(world);
             case v1_12_R1:
                 return new BukkitQueue_1_12(world);
             default:

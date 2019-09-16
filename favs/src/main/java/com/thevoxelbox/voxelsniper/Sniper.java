@@ -29,7 +29,6 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.bukkit.wrapper.AsyncWorld;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
-import com.boydti.fawe.logging.LoggingChangeSet;
 import com.boydti.fawe.object.*;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
 import com.boydti.fawe.object.extent.ResettableExtent;
@@ -199,9 +198,6 @@ public class Sniper {
         MaskedFaweQueue maskQueue = new MaskedFaweQueue(baseQueue, mask);
         com.sk89q.worldedit.world.World worldEditWorld = fp.getWorld();
         FaweChangeSet changeSet = FaweChangeSet.getDefaultChangeSet(worldEditWorld, fp.getUUID());
-        if (Fawe.imp().getBlocksHubApi() != null) {
-            changeSet = LoggingChangeSet.wrap(fp, changeSet);
-        }
         FaweQueue changeQueue;
         if (Settings.IMP.HISTORY.COMBINE_STAGES) {
             changeQueue = maskQueue;

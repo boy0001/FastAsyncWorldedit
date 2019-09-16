@@ -56,8 +56,6 @@ public interface IFawe {
 
     public String getName(UUID uuid);
 
-    public Object getBlocksHubApi();
-
     public default String getDebugInfo() {
         return "";
     }
