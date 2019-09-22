@@ -137,9 +137,7 @@ public abstract class FaweChunk<T> implements Callable<FaweChunk> {
      * @param layer
      * @return char[] or null
      */
-    public
-    @Nullable
-    char[] getIdArray(int layer) {
+    public @Nullable char[] getIdArray(int layer) {
         char[] ids = new char[4096];
         int by = layer << 4;
         int index = 0;
@@ -182,22 +180,22 @@ public abstract class FaweChunk<T> implements Callable<FaweChunk> {
         char[][] ids = new char[HEIGHT >> 4][];
         for (int y = 0; y < HEIGHT >> 4; y++) {
             int y4 = y >> 4;
-            short[][] i1 = FaweCache.CACHE_J[y];
-            for (int z = 0; z < 16; z++) {
-                short[] i2 = i1[z];
-                for (int x = 0; x < 16; x++) {
-                    int combined = getBlockCombinedId(x, y, z);
-                    if (combined == 0) {
-                        continue;
+                short[][] i1 = FaweCache.CACHE_J[y];
+                for (int z = 0; z < 16; z++) {
+                    short[] i2 = i1[z];
+                    for (int x = 0; x < 16; x++) {
+                        int combined = getBlockCombinedId(x, y, z);
+                        if (combined == 0) {
+                            continue;
+                        }
+                        char[] array = ids[y4];
+                        if (array == null) {
+                            array = ids[y4] = new char[4096];
+                        }
+                        int index = i2[x];
+                        array[index] = (char) combined;
                     }
-                    char[] array = ids[y4];
-                    if (array == null) {
-                        array = ids[y4] = new char[4096];
-                    }
-                    int index = i2[x];
-                    array[index] = (char) combined;
                 }
-            }
         }
         return ids;
     }
@@ -299,8 +297,7 @@ public abstract class FaweChunk<T> implements Callable<FaweChunk> {
      *
      * @return
      * @see com.boydti.fawe.util.MathMan#unpair16x (get0) => x
-     * @see com.boydti.fawe.util.MathMan#unpair16y (get0) => z
-     * get1 => y
+     * @see com.boydti.fawe.util.MathMan#unpair16y (get0) => z get1 => y
      */
     public abstract Map<Short, CompoundTag> getTiles();
 

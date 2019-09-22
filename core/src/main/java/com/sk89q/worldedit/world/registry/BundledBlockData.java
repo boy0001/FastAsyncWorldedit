@@ -98,6 +98,13 @@ public class BundledBlockData {
         List<BlockEntry> entries = gson.fromJson(data, new TypeToken<List<BlockEntry>>() {
         }.getType());
         for (BlockEntry entry : entries) {
+        	
+        	if (entry.legacyId == 210){
+        		entry.legacyId = 188;
+        	} else if (entry.legacyId == 211){
+        		entry.legacyId = 189;
+        	}
+        	System.out.println("BundledBlockData::Adding block entry: " + entry.id + " (" + entry.legacyId + ")");
             add(entry, overwrite);
         }
     }
