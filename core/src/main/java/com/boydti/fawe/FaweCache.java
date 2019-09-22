@@ -152,9 +152,6 @@ public class FaweCache {
             int id = i >> 4;
         int data = i & 0xf;
         if (FaweCache.hasNBT(id)) {
-            if (id == 137 || id == 188 || id == 189){
-                System.out.println("Has NBT: " + id + " Data: " + data);
-            }
             CACHE_BLOCK[i] = new ImmutableNBTBlock(id, data);
         } else if (FaweCache.hasData(id)) {
             CACHE_BLOCK[i] = new ImmutableBlock(id, data);
