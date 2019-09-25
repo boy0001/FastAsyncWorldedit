@@ -59,7 +59,7 @@ public class BukkitMain extends JavaPlugin {
         if (Bukkit.getPluginManager().getPlugin("WorldEdit") == null) {
             try {
                 File output = new File(this.getDataFolder().getParentFile(), "WorldEdit.jar");
-                byte[] weJar = Jars.WE_B_6_1_7_2.download();
+                byte[] weJar = Jars.WE_B_6_1_9.download();
                 try (FileOutputStream fos = new FileOutputStream(output)) {
                     fos.write(weJar);
                 }
