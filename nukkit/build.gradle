@@ -23,8 +23,42 @@ processResources {
 }
 
 apply plugin: 'com.github.johnrengelman.shadow'
-// We only want the shadow jar produced
-jar.enabled = false
+
+jar.archiveName="fawe-nukkit-${project.parent.version}.jar"
+jar.destinationDir = file '../mvn/com/boydti/fawe-nukkit/' + project.parent.version
+task createPom << {
+    pom {
+        project {
+            groupId 'com.boydti'
+            artifactId 'fawe-nukkit'
+            version project.parent.version
+        }
+    }
+    .getEffectivePom()
+            .setDependencies(new ArrayList<>())
+            .writeTo("../mvn/com/boydti/fawe-nukkit/${project.parent.version}/fawe-nukkit-${project.parent.version}.pom")
+    pom {
+        project {
+            groupId 'com.boydti'
+            artifactId 'fawe-nukkit'
+            version 'latest'
+        }
+    }
+    .getEffectivePom()
+            .setDependencies(new ArrayList<>())
+            .writeTo("../mvn/com/boydti/fawe-nukkit/latest/fawe-nukkit-latest.pom")
+}
+task copyFiles {
+    doLast {
+        copy {
+            from "../mvn/com/boydti/fawe-nukkit/${project.parent.version}/"
+            into '../mvn/com/boydti/fawe-nukkit/latest/'
+            include('fawe-nukkit*.jar')
+            rename ("fawe-nukkit-${project.parent.version}.jar", 'fawe-nukkit-latest.jar')
+        }
+    }
+}
+
 shadowJar {
     dependencies {
         include(dependency('com.github.luben:zstd-jni:1.1.1'))
@@ -51,4 +85,6 @@ shadowJar.doLast {
         ant.checksum file: task.archivePath
 }
 
-build.dependsOn(shadowJar);
+build.dependsOn(shadowJar)
+build.finalizedBy(copyFiles)
+copyFiles.dependsOn(createPom)
