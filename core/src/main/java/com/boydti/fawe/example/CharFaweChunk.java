@@ -315,8 +315,6 @@ public abstract class CharFaweChunk<T, V extends FaweQueue> extends FaweChunk<T>
             case 172:
             case 173:
             case 174:
-            case 188:
-            case 189:
             case 190:
             case 191:
             case 192:
@@ -330,6 +328,9 @@ public abstract class CharFaweChunk<T, V extends FaweQueue> extends FaweChunk<T>
             case 10:
             case 54:
             case 146:
+            case 137:
+            case 188:
+            case 189:
             case 61:
             case 65:
             case 68: // removed
