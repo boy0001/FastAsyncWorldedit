@@ -1,6 +1,6 @@
 __*NOTICE: Bukkit/Spigot versions 1.7.10 to 1.12.2 are considered legacy and will receive limited support. Please consider upgrading to 1.13 for future support. Plugins exist for 1.13+ that bring back old behaviors found in 1.8*__
 # Bug report for FastAsyncWorldEdit < 1.12.2
-<!--- REPORT ISSUES REGARDING FAWE ON 1.13.x HERE: https://github.com/IntellectualSites/FastAsyncWorldEdit-1.13/issues/new --->
+<!--- REPORT ISSUES REGARDING FAWE FOR 1.13 AND HIGHER HERE: https://github.com/IntellectualSites/FastAsyncWorldEdit-1.13/issues/new --->
 <!--- Follow this template if reporting an issue. -->
 <!--- Remove this template if making a suggestion or asking a question. -->
 <!--- Please comment or react to an existing ticket if it exists -->
