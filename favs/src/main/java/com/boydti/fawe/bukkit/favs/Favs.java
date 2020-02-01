@@ -6,6 +6,7 @@ import com.boydti.fawe.object.FaweCommand;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.util.Jars;
 import com.boydti.fawe.util.MainUtil;
+import com.boydti.fawe.bukkit.favs.Metrics;
 import com.thevoxelbox.voxelsniper.RangeBlockHelper;
 import com.thevoxelbox.voxelsniper.SnipeData;
 import com.thevoxelbox.voxelsniper.Sniper;
@@ -23,6 +24,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class Favs extends JavaPlugin {
+
+    private static final int BSTATS_ID = 6405;
 
     @Override
     public void onEnable() {
@@ -63,6 +66,9 @@ public class Favs extends JavaPlugin {
             RangeBlockHelper.inject();
             SniperBrushChangedEvent.inject();
             SniperMaterialChangedEvent.inject();
+
+            // Enable metrics
+            new Metrics(this, BSTATS_ID);
 
             WarpBrush.inject(); // Fixes for async tp
             // Forward the commands so //p and //d will work

@@ -103,14 +103,14 @@ subprojects {
         mavenLocal()
         maven {url "http://empcraft.com/maven2"}
         maven {url "https://hub.spigotmc.org/nexus/content/groups/public/"}
-        maven {url "http://maven.sk89q.com/repo/"}
-        maven {url "http://repo.maven.apache.org/maven2"}
+        maven {url "https://maven.enginehub.org/repo/"}
+        maven {url "https://repo.maven.apache.org/maven2"}
         maven {url "http://ci.frostcast.net/plugin/repository/everything"}
-        maven {url "http://maven.sk89q.com/artifactory/repo"}
         maven {url "http://repo.spongepowered.org/maven"}
         maven {url "http://dl.bintray.com/tastybento/maven-repo"}
         maven {url "https://repo.inventivetalent.org/content/groups/public/"}
         maven {url "https://store.ttyh.ru/libraries/"}
+        maven {url "https://repo.dmulloy2.net/nexus/repository/public/"}
     }
 }
 task aggregatedJavadocs(type: Javadoc, description: 'Generate javadocs from all child projects as if it was a single project', group: 'Documentation') {
