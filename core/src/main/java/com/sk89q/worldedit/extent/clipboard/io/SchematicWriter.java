@@ -197,9 +197,7 @@ public class SchematicWriter implements ClipboardWriter {
                                     int add = id >> 8;
                                     if (!hasAdd) {
                                         hasAdd = true;
-                                        for (int i = 0; i < index >> 1; i++) {
-                                            addOut.write(new byte[index >> 1]);
-                                        }
+                                        addOut.write(new byte[index >> 1]);
                                     }
                                     if ((index & 1) == 1) {
                                         addOut.write(addAcc[0] + (add << 4));
