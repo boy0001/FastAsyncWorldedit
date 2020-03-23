@@ -157,7 +157,7 @@ public class AsyncChunk implements Chunk {
 
     @Override
     public boolean unload(boolean save) {
-        return unload(true, false);
+        return unload(save, false);
     }
 
     @Override
