@@ -1,9 +1,0 @@
-// Add blocks here if you need block names, rotation and textures to work
-// The following blocks are already bundled with FAWE: https://github.com/sk89q/WorldEdit/blob/master/worldedit-core/src/main/resources/com/sk89q/worldedit/world/registry/blocks.json
-// To generating the blocks from forge mods see:
-// - https://github.com/wizjany/ForgeUtils
-//
-// Help with ForgeUtils: wizjany @ http://webchat.esper.net/?nick=&channels=sk89q
-[
-
-]
