@@ -639,7 +639,9 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
 
     public void clear(Player player) {
         FawePlayer<Object> fp = FawePlayer.wrap(player);
-        Fawe.get().getVisualQueue().dequeue(fp);
+        if (Fawe.get().getVisualQueue() != null) {
+            Fawe.get().getVisualQueue().dequeue(fp);
+        }
         if (visualExtent != null) {
             visualExtent.clear(null, fp);
         }

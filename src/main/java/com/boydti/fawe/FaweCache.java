@@ -56,8 +56,8 @@ public class FaweCache {
      */
     public final static byte[][] CACHE_Z = new byte[16][4096];
 
-    public final static boolean[] CACHE_PASSTHROUGH = new boolean[65535];
-    public final static boolean[] CACHE_TRANSLUSCENT = new boolean[65535];
+    public final static boolean[] CACHE_PASSTHROUGH = new boolean[522816];
+    public final static boolean[] CACHE_TRANSLUSCENT = new boolean[522816];
 
     /**
      * Immutable biome cache
@@ -68,9 +68,9 @@ public class FaweCache {
      * Immutable BaseBlock cache
      * [ combined ] => block
      */
-    public final static BaseBlock[] CACHE_BLOCK = new BaseBlock[Character.MAX_VALUE + 1];
+    public final static BaseBlock[] CACHE_BLOCK = new BaseBlock[522816];
 
-    public final static BaseItem[] CACHE_ITEM = new BaseItem[Character.MAX_VALUE + 1];
+    public final static BaseItem[] CACHE_ITEM = new BaseItem[522816];
 
     /**
      * Faster than java random (since it just needs to look random)
@@ -148,7 +148,7 @@ public class FaweCache {
     }
 
     static {
-        for (int i = 0; i < Character.MAX_VALUE; i++) {
+        for (int i = 0; i < 522816; i++) {
             int id = i >> 4;
             int data = i & 0xf;
             if (FaweCache.hasNBT(id)) {

@@ -5,7 +5,7 @@ public class FaweVersion {
 
     public FaweVersion(String version) {
         String[] split = version.substring(version.indexOf('=') + 1).split("-");
-        if (split[0].equals("unknown")) {
+        if (split[0].equals("mohist")) {
             this.year = month = day = hash = build = major = minor = patch = 0;
             return;
         }

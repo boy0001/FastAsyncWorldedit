@@ -42,7 +42,6 @@ import com.boydti.fawe.util.ReflectionUtils;
 import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.util.cui.CUI;
 import com.boydti.fawe.util.image.ImageViewer;
-import com.boydti.fawe.util.metrics.BStats;
 import com.sk89q.bukkit.util.FallbackRegistrationListener;
 import com.sk89q.worldedit.bukkit.BukkitPlayerBlockBag;
 import com.sk89q.worldedit.bukkit.BukkitWorld;
@@ -284,44 +283,6 @@ public class FaweBukkit implements IFawe, Listener {
         }
     }
 
-    @Override
-    public void startMetrics() {
-        Metrics metrics = new Metrics(plugin);
-        metrics.start();
-        TaskManager.IMP.task(new Runnable() {
-            @Override
-            public void run() {
-                ArrayList<Class<?>> services = new ArrayList(Bukkit.getServicesManager().getKnownServices());
-                services.forEach(service -> {
-                    try {
-                        service.getField("B_STATS_VERSION");
-                        ArrayList<RegisteredServiceProvider<?>> providers = new ArrayList(Bukkit.getServicesManager().getRegistrations(service));
-                        for (RegisteredServiceProvider<?> provider : providers) {
-                            Object instance = provider.getProvider();
-
-                            // Link it to FAWE's metrics instead
-                            BStats.linkMetrics(instance);
-
-                            // Disable the other metrics
-                            Bukkit.getServicesManager().unregister(service, instance);
-                            try {
-                                Class<? extends Object> clazz = instance.getClass();
-                                Field logFailedRequests = ReflectionUtils.findField(clazz, boolean.class);
-                                logFailedRequests.set(null, false);
-                                Field url = null;
-                                try { url = clazz.getDeclaredField("URL"); } catch (NoSuchFieldException ignore) {
-                                for (Field field : clazz.getDeclaredFields()) if (ReflectionUtils.setAccessible(field).get(null).toString().startsWith("http")) { url = field; break; }
-                                }
-                                if (url != null) ReflectionUtils.setFailsafeFieldValue(url, null, null);
-                            } catch (NoSuchFieldError | IllegalAccessException ignore) {}
-                            catch (Throwable e) {}
-                        }
-                    } catch (NoSuchFieldException ignored) { }
-                });
-            }
-        });
-    }
-
     public ItemUtil getItemUtil() {
         ItemUtil tmp = itemUtil;
         if (tmp == null) {
@@ -526,13 +487,7 @@ public class FaweBukkit implements IFawe, Listener {
                     managers.add(new FactionsUUIDFeature(factionsPlugin, this));
                     Fawe.debug("Plugin 'FactionsUUID' found. Using it now.");
                 } catch (Throwable e2) {
-                    try {
-                        managers.add(new FactionsOneFeature(factionsPlugin, this));
-                        Fawe.debug("Plugin 'FactionsUUID' found. Using it now.");
-                    } catch (Throwable e3) {
-                        MainUtil.handleError(e);
-                    }
-
+                    MainUtil.handleError(e);
                 }
             }
         }

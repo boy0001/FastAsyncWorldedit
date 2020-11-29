@@ -96,7 +96,6 @@ public class RenderListener implements Listener {
                 }
             }
         }
-        player.setViewDistance(value);
     }
 
     public int getViewDistance(Player player) {

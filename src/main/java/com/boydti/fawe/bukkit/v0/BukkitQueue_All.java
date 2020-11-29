@@ -55,24 +55,6 @@ public class BukkitQueue_All extends BukkitQueue_0<ChunkSnapshot, ChunkSnapshot,
 
     @Override
     public boolean queueChunkLoad(int cx, int cz, RunnableVal<ChunkSnapshot> operation) {
-        if (PAPER) {
-            try {
-                new PaperChunkCallback(getImpWorld(), cx, cz) {
-                    @Override
-                    public void onLoad(Chunk chunk) {
-                        try {
-                            ChunkSnapshot snapshot = chunk.getChunkSnapshot();
-                            operation.run(snapshot);
-                        } catch (Throwable e) {
-                            PAPER = false;
-                        }
-                    }
-                };
-                return true;
-            } catch (Throwable ignore) {
-                PAPER = false;
-            }
-        }
         return super.queueChunkLoad(cx, cz);
     }
 

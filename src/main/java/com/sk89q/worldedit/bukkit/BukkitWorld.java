@@ -22,6 +22,7 @@ package com.sk89q.worldedit.bukkit;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.bukkit.FaweBukkit;
 import com.boydti.fawe.bukkit.v0.BukkitQueue_0;
+import com.mohistmc.api.ItemAPI;
 import com.sk89q.worldedit.*;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
@@ -399,7 +400,7 @@ public class BukkitWorld extends LocalWorld {
     @SuppressWarnings("deprecation")
     @Override
     public boolean isValidBlockType(int type) {
-        return Material.getBlockMaterial(type) != null && Material.getBlockMaterial(type).isBlock();
+        return ItemAPI.getBlockMaterial(type) != null && ItemAPI.getBlockMaterial(type).isBlock();
     }
 
     @Override

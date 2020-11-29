@@ -31,7 +31,8 @@ version = 'mohist'
 description = """FastAsyncWorldEdit"""
 
 dependencies {
-    compile files('libs/mohist_srg.jar')
+    compile files('libs/spigot-1.12.2.jar')
+    compile files('libs/mohist-1.12.2-120.jar')
     compile files('libs/WorldEdit-6.1.9-SNAPSHOT-all.jar')
     compile files('libs/ProtocolLib.jar')
     compile files('libs/MapManager_v1.7.8-SNAPSHOT.jar')
@@ -46,7 +47,7 @@ dependencies {
     compile files('libs/PreciousStones.jar')
     compile files('libs/FactionsUUID.jar')
     compile files('libs/PlotMe-Core.jar')
-    compile 'net.milkbowl.vault:VaultAPI:1.7'
+    compile files('libs/Vault.jar')
     //compile 'net.sacredlabyrinth.Phaed:PreciousStones:10.0.4-SNAPSHOT'
     //compile 'net.jzx7:regios:5.9.9'
     //compile 'com.bekvon.bukkit.residence:Residence:4.5._13.1'
@@ -55,21 +56,33 @@ dependencies {
     //compile 'junit:junit:4.11'
     //compile 'com.thevoxelbox.voxelsniper:voxelsniper:5.171.0'
     //compile 'com.wasteofplastic:askyblock:3.0.8.2'
-    compile 'org.yaml:snakeyaml:1.16'
-    compile 'com.google.code.gson:gson:2.2.4'
-    compile 'com.google.guava:guava:28.0-jre'
-    compile 'commons-lang:commons-lang:2.6'
     compile 'co.aikar:fastutil-lite:1.0'
    // compile 'net.fabiozumbi12:redprotect:1.9.6'
     //compile 'org.primesoft:BlocksHub:2.0'
-    //compile 'com.github.luben:zstd-jni:1.1.1'
+    compile 'com.github.luben:zstd-jni:1.1.1'
 }
 
 shadowJar {
     dependencies {
         include(dependency('com.github.luben:zstd-jni:1.1.1'))
         include(dependency('co.aikar:fastutil-lite:1.0'))
-        exclude 'mohist_srg.jar'
+        exclude 'spigot-1.12.2.jar'
+        exclude 'mohist-1.12.2-120.jar'
+        exclude 'WorldEdit-6.1.9-SNAPSHOT-all.jar'
+        exclude 'ProtocolLib.jar'
+        exclude 'MapManager_v1.7.8-SNAPSHOT.jar'
+        exclude 'GriefPrevention.jar'
+        exclude 'PlotSquared-Bukkit-18.12.12-be48507-2053.jar'
+        exclude 'worldguard-6.2.1.jar'
+        exclude 'askyblock.jar'
+        exclude 'Factions.jar'
+        exclude 'MassiveCore.jar'
+        exclude 'Towny.jar'
+        exclude 'Residence4.9.0.6.jar'
+        exclude 'PreciousStones.jar'
+        exclude 'FactionsUUID.jar'
+        exclude 'PlotMe-Core.jar'
+        exclude 'Vault.jar'
     }
     relocate('com.google.gson', 'com.sk89q.worldedit.internal.gson')
 }

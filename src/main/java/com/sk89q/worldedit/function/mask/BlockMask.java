@@ -23,8 +23,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class BlockMask extends AbstractExtentMask {
 
-    public final boolean[] blocks = new boolean[Character.MAX_VALUE + 1];
-    public final boolean[] blockIds = new boolean[4096];
+    public final boolean[] blocks = new boolean[522816];
+    public final boolean[] blockIds = new boolean[32676];
     public Collection<BaseBlock> computedLegacyList;
 
     /**

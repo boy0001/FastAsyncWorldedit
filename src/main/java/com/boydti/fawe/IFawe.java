@@ -34,8 +34,6 @@ public interface IFawe {
 
     public Collection<FaweMaskManager> getMaskManagers();
 
-    public void startMetrics();
-
     default CUI getCUI(FawePlayer player) { return null; }
 
     default ImageViewer getImageViewer(FawePlayer player) { return null; }

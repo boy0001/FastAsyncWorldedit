@@ -10,28 +10,22 @@ import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.ReflectionUtils;
-import com.comphenix.protocol.wrappers.BlockPosition;
-import com.comphenix.protocol.wrappers.MinecraftKey;
 import com.sk89q.jnbt.*;
 import com.sk89q.worldedit.internal.Constants;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityList;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagInt;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.world.chunk.BlockStateContainer;
+import net.minecraft.server.v1_12_R1.*;
 import org.bukkit.Chunk;
 import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_12_R1.CraftChunk;
 import org.bukkit.event.entity.CreatureSpawnEvent;
+
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 public class BukkitChunk_1_12 extends CharFaweChunk<Chunk, BukkitQueue_1_12> {
 
-    public BlockStateContainer[] sectionPalettes;
+    public DataPaletteBlock[] sectionPalettes;
 
     public static Map<String, Class<? extends Entity>> entityKeys;
 
@@ -70,7 +64,7 @@ public class BukkitChunk_1_12 extends CharFaweChunk<Chunk, BukkitQueue_1_12> {
         int y = (MathMan.roundInt(ent.locY) & 0xFF);
         int i = FaweCache.CACHE_I[y][z][x];
         int j = FaweCache.CACHE_J[y][z][x];
-        String id = EntityList.func_75621_b(ent);
+        String id = EntityTypes.b(ent);
         if (id != null) {
             NBTTagCompound tag = new NBTTagCompound();
             ent.save(tag); // readEntityIntoTag
@@ -187,7 +181,11 @@ public class BukkitChunk_1_12 extends CharFaweChunk<Chunk, BukkitQueue_1_12> {
 
     @Override
     public void start() {
-        getChunk().load(true);
+        try {
+            getChunk().load(true);
+        } catch (Exception e) {
+
+        }
     }
 
     private void removeEntity(Entity entity) {

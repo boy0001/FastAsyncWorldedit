@@ -75,7 +75,7 @@ public class BaseBlock implements TileEntityBlock, Pattern, Serializable {
      * reasons), which coincides with the number of possible IDs that official
      * Minecraft supports as of version 1.7.
      */
-    public static final int MAX_ID = 65535;
+    public static final int MAX_ID = 522816;
 
     /**
      * Indicates the maximum data value (inclusive) that can be used. A future

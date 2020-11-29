@@ -243,56 +243,6 @@ public class AsyncWorld extends DelegateFaweQueue implements World, HasFaweQueue
     }
 
     @Override
-    public int getEntityCount() {
-        return TaskManager.IMP.sync(new RunnableVal<Integer>() {
-            @Override
-            public void run(Integer value) {
-                this.value = parent.getEntityCount();
-            }
-        });
-    }
-
-    @Override
-    public int getTileEntityCount() {
-        return TaskManager.IMP.sync(new RunnableVal<Integer>() {
-            @Override
-            public void run(Integer value) {
-                this.value = parent.getTileEntityCount();
-            }
-        });
-    }
-
-    @Override
-    public int getTickableTileEntityCount() {
-        return TaskManager.IMP.sync(new RunnableVal<Integer>() {
-            @Override
-            public void run(Integer value) {
-                this.value = parent.getTickableTileEntityCount();
-            }
-        });
-    }
-
-    @Override
-    public int getChunkCount() {
-        return TaskManager.IMP.sync(new RunnableVal<Integer>() {
-            @Override
-            public void run(Integer value) {
-                this.value = parent.getChunkCount();
-            }
-        });
-    }
-
-    @Override
-    public int getPlayerCount() {
-        return TaskManager.IMP.sync(new RunnableVal<Integer>() {
-            @Override
-            public void run(Integer value) {
-                this.value = parent.getPlayerCount();
-            }
-        });
-    }
-
-    @Override
     public Block getBlockAt(final int x, final int y, final int z) {
         return new AsyncBlock(this, queue, x, y, z);
     }
@@ -353,21 +303,6 @@ public class AsyncWorld extends DelegateFaweQueue implements World, HasFaweQueue
     @Override
     public Chunk getChunkAt(Block block) {
         return getChunkAt(block.getX(), block.getZ());
-    }
-
-    @Override
-    public void getChunkAtAsync(int x, int z, ChunkLoadCallback cb) {
-        parent.getChunkAtAsync(x, z, cb);
-    }
-
-    @Override
-    public void getChunkAtAsync(Location location, ChunkLoadCallback cb) {
-        parent.getChunkAtAsync(location, cb);
-    }
-
-    @Override
-    public void getChunkAtAsync(Block block, ChunkLoadCallback cb) {
-        parent.getChunkAtAsync(block, cb);
     }
 
     @Override
@@ -669,6 +604,11 @@ public class AsyncWorld extends DelegateFaweQueue implements World, HasFaweQueue
     @Override
     public Location getSpawnLocation() {
         return parent.getSpawnLocation();
+    }
+
+    @Override
+    public boolean setSpawnLocation(Location location) {
+        return false;
     }
 
     @Override

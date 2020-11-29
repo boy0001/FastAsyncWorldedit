@@ -1,4 +1,4 @@
-package com.github.luben.zstd;
+package com.boydti.fawe.object.io.zstd;
 
 import java.io.InputStream;
 import java.io.FilterInputStream;
