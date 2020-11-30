@@ -68,7 +68,7 @@ public class BundledBlockData {
     public final Map<String, BaseBlock> stateMap = new ConcurrentHashMap<>();
     private final Map<String, BlockEntry> localIdMap = new ConcurrentHashMap<>();
 
-    private final BlockEntry[] legacyMap = new BlockEntry[4096];
+    private final BlockEntry[] legacyMap = new BlockEntry[32676];
 
 
     /**

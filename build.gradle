@@ -6,6 +6,7 @@ plugins {
 repositories {
     mavenLocal()
     mavenCentral()
+    maven { url "https://raw.githubusercontent.com/Mohist-Community/Mohist-Maven/master/maven" }
     maven { url 'https://repo.codemc.io/maven-public' }
     maven {url "http://repo.dmulloy2.net/content/groups/public/"}
     maven {url "https://repo.destroystokyo.com/repository/maven-public//"}
@@ -32,7 +33,6 @@ description = """FastAsyncWorldEdit"""
 
 dependencies {
     compile files('libs/spigot-1.12.2.jar')
-    compile files('libs/mohist-1.12.2-120.jar')
     compile files('libs/WorldEdit-6.1.9-SNAPSHOT-all.jar')
     compile files('libs/ProtocolLib.jar')
     compile files('libs/MapManager_v1.7.8-SNAPSHOT.jar')
@@ -60,6 +60,7 @@ dependencies {
    // compile 'net.fabiozumbi12:redprotect:1.9.6'
     //compile 'org.primesoft:BlocksHub:2.0'
     compile 'com.github.luben:zstd-jni:1.1.1'
+    compile 'com.mohistmc:mohistdev:0.1-SNAPSHOT'
 }
 
 shadowJar {
@@ -67,7 +68,6 @@ shadowJar {
         include(dependency('com.github.luben:zstd-jni:1.1.1'))
         include(dependency('co.aikar:fastutil-lite:1.0'))
         exclude 'spigot-1.12.2.jar'
-        exclude 'mohist-1.12.2-120.jar'
         exclude 'WorldEdit-6.1.9-SNAPSHOT-all.jar'
         exclude 'ProtocolLib.jar'
         exclude 'MapManager_v1.7.8-SNAPSHOT.jar'
