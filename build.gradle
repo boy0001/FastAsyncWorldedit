@@ -6,7 +6,7 @@ plugins {
 repositories {
     mavenLocal()
     mavenCentral()
-    maven { url "https://raw.githubusercontent.com/Mohist-Community/Mohist-Maven/master/maven" }
+    maven { url "https://github.com/mohist-community/maven/raw/master" }
     maven { url 'https://repo.codemc.io/maven-public' }
     maven {url "http://repo.dmulloy2.net/content/groups/public/"}
     maven {url "https://repo.destroystokyo.com/repository/maven-public//"}
