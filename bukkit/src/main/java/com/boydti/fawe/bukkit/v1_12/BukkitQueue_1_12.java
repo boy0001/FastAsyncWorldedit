@@ -158,7 +158,7 @@ public class BukkitQueue_1_12 extends BukkitQueue_0<net.minecraft.server.v1_12_R
 
                 methodSaveChunk.invoke(cps, chunk, false);
             } else {
-                cps.saveChunk(chunk);
+                cps.saveChunk(chunk, false);
             }
             cps.saveChunkNOP(chunk);
             return true;

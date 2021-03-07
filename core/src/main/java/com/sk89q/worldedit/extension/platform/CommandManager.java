@@ -25,6 +25,7 @@ import com.boydti.fawe.command.CFICommand;
 import com.boydti.fawe.command.MaskBinding;
 import com.boydti.fawe.command.PatternBinding;
 import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.object.task.ThrowableSupplier;
@@ -69,6 +70,12 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -144,6 +151,7 @@ public final class CommandManager {
         } catch (ClassNotFoundException e) {}
     }
 
+    /**
     /**
      * Register all the methods in the class as commands<br>
      * - You should try to register commands during startup
@@ -544,12 +552,29 @@ public final class CommandManager {
 
     @Subscribe
     public void handleCommandSuggestion(CommandSuggestionEvent event) {
-        try {
+        if (!Settings.IMP.TAB_COMPLETION.ENABLED) {
+            return;
+        }
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        //Do not let tab completions hang the main thread for more than 5 seconds.
+        Future<Object> future = executorService.submit(() -> {
             CommandLocals locals = new CommandLocals();
             locals.put(Actor.class, event.getActor());
-            event.setSuggestions(dispatcher.getSuggestions(event.getArguments(), locals));
-        } catch (CommandException e) {
-            event.getActor().printError(e.getMessage());
+            try {
+                event.setSuggestions(dispatcher.getSuggestions(event.getArguments(), locals));
+            } catch (CommandException e) {
+                event.getActor().printError(e.getMessage());
+            }
+            return null;
+        });
+        try {
+            future.get(Settings.IMP.TAB_COMPLETION.MAX_TIME, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException | ExecutionException e) {
+            event.getActor().printError(e.getCause().getMessage());
+        } catch (TimeoutException e) {
+            event.getActor().printError("Tab complete took too long.");
+        } finally {
+            executorService.shutdownNow();
         }
     }
 

@@ -1,13 +1,12 @@
 repositories {
     flatDir {dirs 'lib'}
-    maven {url "http://ci.athion.net/job/PlotSquared-Legacy/ws/mvn/"}
 }
 dependencies {
     testCompile 'junit:junit:4.12'
     compile 'org.yaml:snakeyaml:1.16'
     compile 'com.google.code.gson:gson:2.2.4'
     compile 'net.fabiozumbi12:redprotect:1.9.6'
-    compile group: "com.plotsquared", name: "plotsquared-api", version: "latest"
+    compile 'com.plotsquared:plotsquared-api:3.1'
     compile 'org.primesoft:BlocksHub:2.0'
     compile 'com.github.luben:zstd-jni:1.1.1'
 //    compile 'org.javassist:javassist:3.22.0-CR1'

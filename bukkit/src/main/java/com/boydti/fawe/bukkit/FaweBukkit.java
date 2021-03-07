@@ -517,16 +517,10 @@ public class FaweBukkit implements IFawe, Listener {
                 Fawe.debug("Plugin 'Factions' found. Using it now.");
             } catch (final Throwable e) {
                 try {
-                    managers.add(new FactionsUUIDFeature(factionsPlugin, this));
+                    managers.add(new FactionsOneFeature(factionsPlugin, this));
                     Fawe.debug("Plugin 'FactionsUUID' found. Using it now.");
-                } catch (Throwable e2) {
-                    try {
-                        managers.add(new FactionsOneFeature(factionsPlugin, this));
-                        Fawe.debug("Plugin 'FactionsUUID' found. Using it now.");
-                    } catch (Throwable e3) {
-                        MainUtil.handleError(e);
-                    }
-
+                } catch (Throwable e3) {
+                    MainUtil.handleError(e);
                 }
             }
         }
@@ -548,16 +542,6 @@ public class FaweBukkit implements IFawe, Listener {
                 MainUtil.handleError(e);
             }
         }
-        final Plugin preciousstonesPlugin = Bukkit.getServer().getPluginManager().getPlugin("PreciousStones");
-        if ((preciousstonesPlugin != null) && preciousstonesPlugin.isEnabled()) {
-            try {
-                managers.add(new PreciousStonesFeature(preciousstonesPlugin, this));
-                Fawe.debug("Plugin 'PreciousStones' found. Using it now.");
-            } catch (final Throwable e) {
-                MainUtil.handleError(e);
-            }
-        }
-
 
         final Plugin aSkyBlock = Bukkit.getServer().getPluginManager().getPlugin("ASkyBlock");
         if ((aSkyBlock != null) && aSkyBlock.isEnabled()) {

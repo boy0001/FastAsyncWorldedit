@@ -68,6 +68,8 @@ public class Settings extends Config {
     @Create
     public PATHS PATHS;
     @Create
+    public TAB_COMPLETION TAB_COMPLETION;
+    @Create
     public REGION_RESTRICTIONS_OPTIONS REGION_RESTRICTIONS_OPTIONS;
 
     @Comment("Paths for various directories")
@@ -163,6 +165,13 @@ public class Settings extends Config {
                 "List of blocks to strip nbt from",
         })
         public List<String> STRIP_NBT = new ArrayList<>();
+    }
+
+    public static class TAB_COMPLETION {
+        @Comment({"Entirely disabled tab completion to completely avoid exploits"})
+        public boolean ENABLED = true;
+        @Comment({"Max time tab-completes can attempt to operate for until being cancelled (ms)"})
+        public int MAX_TIME = 100;
     }
 
     public static class HISTORY {
